@@ -11,6 +11,7 @@ obj/
 # Visual Studio Code files
 .vscode/
 *.code-workspace
+.vs
 
 # Rider / JetBrains IDEs
 .idea/
