@@ -1,0 +1,40 @@
+# Ignore build and publish outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code files
+.vscode/
+*.code-workspace
+
+# Rider / JetBrains IDEs
+.idea/
+*.sln.iml
+
+# Package management
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+
+# Logs
+*.log
+
+# Test results and coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Xunit test files
+.trx
+*.vsmdi
+
+# Local configuration
+appsettings.Development.json
+secrets.json
