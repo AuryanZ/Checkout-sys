@@ -53,7 +53,7 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
     }
     Response: 201 Created
     ```
-    - [x] add order
+    - [ ] add order
     ```
     POST /orders
     Request:
@@ -67,7 +67,7 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
         "TotalAmount": 0.0,
     }
     ```
-    - [x] add order item
+    - [ ] add order item
     ```
     POST /orders/1/items
     Request:
@@ -82,7 +82,7 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
         "TotalAmount": 4.0,
     }
     ```
-    - [x] Delete order item
+    - [ ] Delete order item
     ```
     DELETE /orders/1/items/A
     Response:
@@ -91,7 +91,7 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
         "TotalAmount": 0.0,
     }
     ```
-    - [x] Checkout
+    - [ ] Checkout
     ```
     POST /orders/1/checkout
     Request:
