@@ -37,7 +37,7 @@ namespace ShopCheckOut.UnitTest.Controllers
                         new() { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" },
                         new() { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 40.0m, PriceUnit = "kg" },
                 });
-            var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
 
             // Act
             var result = (await sut.GetProductsByCategory("Category1")).Result as OkObjectResult;
@@ -62,7 +62,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             _mockProductsService.Setup(service => service.GetProductsByCategory(It.IsAny<string>()))
                 .ReturnsAsync((List<ProductsModel>)null);
 
-            var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
             // Act
             var result = (await sut.GetProductsByCategory("")).Result as BadRequestObjectResult;
             // Assert
@@ -79,7 +79,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             _mockProductsService.Setup(service => service.GetProductBySKU("SKU3"))
                 .ReturnsAsync(new ProductsModel { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" });
 
-            var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
 
             // Act
             var result = (await sut.GetProductBySKU("SKU1")).Result as OkObjectResult;
@@ -101,7 +101,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             // Arrange
             _mockProductsService.Setup(service => service.GetProductBySKU(It.IsAny<string>()))
                 .ReturnsAsync((ProductsModel?)null);
-            var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
             // Act
             var result = (await sut.GetProductBySKU("")).Result as BadRequestObjectResult;
             // Assert
@@ -129,7 +129,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             _mockProductsService.Setup(service => service.GetProducts())
                 .ReturnsAsync(productsList);
 
-            var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
             // Act
             var addResult = await sut.AddProduct(newProduct) as OkObjectResult;
             // Assert

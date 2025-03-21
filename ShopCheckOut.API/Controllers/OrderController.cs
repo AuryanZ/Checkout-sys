@@ -9,12 +9,12 @@ namespace ShopCheckOut.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class OrderControllers : ControllerBase
+public class OrderController : ControllerBase
 {
     private readonly IMapper _mapper;
     private readonly IOrderService _orderService;
     private readonly IProductsService _productsService;
-    public OrderControllers(IMapper mapper, IOrderService orderService, IProductsService productsService)
+    public OrderController(IMapper mapper, IOrderService orderService, IProductsService productsService)
     {
         _mapper = mapper;
         _orderService = orderService;
@@ -26,7 +26,7 @@ public class OrderControllers : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("new", Name = "NewOrder")]
+    [HttpPost(Name = "NewOrder")]
     public async Task<ActionResult<OrderCreateDto>> NewOrder([FromQuery] string? CustomerId)
     {
         if (!string.IsNullOrEmpty(CustomerId))
@@ -91,3 +91,5 @@ public class OrderControllers : ControllerBase
             return BadRequest(ex);
         }
     }
+
+}

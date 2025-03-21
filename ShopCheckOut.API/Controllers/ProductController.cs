@@ -8,11 +8,11 @@ namespace ShopCheckOut.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ProductControllers : ControllerBase
+public class ProductController : ControllerBase
 {
     private readonly IProductsService _iProductsService;
     private readonly IMapper _mapper;
-    public ProductControllers(IProductsService iProductsService, IMapper mapper)
+    public ProductController(IProductsService iProductsService, IMapper mapper)
     {
         _iProductsService = iProductsService;
         _mapper = mapper;

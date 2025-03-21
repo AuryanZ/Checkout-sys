@@ -16,7 +16,7 @@ namespace ShopCheckOut.UnitTest.Controllers
         private readonly Mock<IOrderService> _mockOrdersService;
         private readonly Mock<IProductsService> _mockProductService;
         private readonly IMapper _mockMapper;
-        private readonly OrderControllers _controller;
+        private readonly OrderController _controller;
         public TestOrderControllers()
         {
             _mockOrdersService = new Mock<IOrderService>();
@@ -40,7 +40,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             });
             _mockMapper = config.CreateMapper();
 
-            _controller = new OrderControllers(
+            _controller = new OrderController(
                 _mockMapper,
                 _mockOrdersService.Object,
                 _mockProductService.Object
