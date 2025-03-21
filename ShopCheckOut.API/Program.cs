@@ -1,9 +1,11 @@
+using ShopCheckOut.API.Data.Orders;
 using ShopCheckOut.API.Data.Products;
 
 void ConfigureServices(IServiceCollection services)
 {
     services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     services.AddScoped<IProductsService, ProductsService>();
+    services.AddScoped<IOrderService, OrderService>();
 }
 
 var builder = WebApplication.CreateBuilder(args);

@@ -17,8 +17,11 @@ namespace ShopCheckOut.UnitTest.Controllers
             _mockProductsService = new Mock<IProductsService>();
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.CreateMap<Products, ProductReadDto>();
-                cfg.CreateMap<ProductCreateDto, Products>();
+                cfg.
+                CreateMap<ProductsModel, ProductReadDto>()
+                .ForMember(dest => dest.PriceInfo,
+                opt => opt.MapFrom(src => $"{src.Price} per {src.PriceUnit}"));
+                cfg.CreateMap<ProductCreateDto, ProductsModel>();
             });
             _mockMapper = config.CreateMapper();
         }
@@ -28,7 +31,7 @@ namespace ShopCheckOut.UnitTest.Controllers
         {
             // Arrange
             _mockProductsService.Setup(service => service.GetProductsByCategory("Category1"))
-                .ReturnsAsync(new List<Products>
+                .ReturnsAsync(new List<ProductsModel>
                 {
                         new() { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" },
                         new() { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" },
@@ -37,13 +40,19 @@ namespace ShopCheckOut.UnitTest.Controllers
             var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
 
             // Act
-            var result = sut.GetProductsByCategory("Category1").Result as OkObjectResult;
+            var result = (await sut.GetProductsByCategory("Category1")).Result as OkObjectResult;
 
             // Assert
             result.StatusCode.Should().Be(200);
 
             var products = result.Value as List<ProductReadDto>;
             products.Should().OnlyContain(p => p.Category == "Category1");
+            products.Should().BeEquivalentTo(
+                new List<ProductReadDto> {
+                new() { SKU = "SKU1", Name = "Product1", Category = "Category1", PriceInfo = "10.0 per kg" },
+                new() {  SKU = "SKU3", Name = "Product3", Category = "Category1", PriceInfo = "30.0 per g"},
+                new() {  SKU = "SKU4", Name = "Product4", Category = "Category1", PriceInfo = "40.0 per kg" }
+                });
         }
 
         [Fact]
@@ -51,30 +60,30 @@ namespace ShopCheckOut.UnitTest.Controllers
         {
             // Arrange
             _mockProductsService.Setup(service => service.GetProductsByCategory(It.IsAny<string>()))
-                .ReturnsAsync((List<Products>)null);
+                .ReturnsAsync((List<ProductsModel>)null);
 
             var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
             // Act
-            var result = await sut.GetProductsByCategory("") as BadRequestObjectResult;
+            var result = (await sut.GetProductsByCategory("")).Result as BadRequestObjectResult;
             // Assert
             result.StatusCode.Should().Be(400);
             result.Value.Should().Be("No Query Added");
         }
 
         [Fact]
-        public void GetProductBySKU_OK()
+        public async Task GetProductBySKU_OKAsync()
         {
             // Arrange
             _mockProductsService.Setup(service => service.GetProductBySKU("SKU1"))
-                .ReturnsAsync(new Products { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" });
+                .ReturnsAsync(new ProductsModel { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" });
             _mockProductsService.Setup(service => service.GetProductBySKU("SKU3"))
-                .ReturnsAsync(new Products { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" });
+                .ReturnsAsync(new ProductsModel { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" });
 
             var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
 
             // Act
-            var result = sut.GetProductBySKU("SKU1").Result as OkObjectResult;
-            var result2 = sut.GetProductBySKU("SKU3").Result as OkObjectResult;
+            var result = (await sut.GetProductBySKU("SKU1")).Result as OkObjectResult;
+            var result2 = (await sut.GetProductBySKU("SKU3")).Result as OkObjectResult;
 
             // Assert
             result.StatusCode.Should().Be(200);
@@ -91,21 +100,21 @@ namespace ShopCheckOut.UnitTest.Controllers
         {
             // Arrange
             _mockProductsService.Setup(service => service.GetProductBySKU(It.IsAny<string>()))
-                .ReturnsAsync((Products?)null);
+                .ReturnsAsync((ProductsModel?)null);
             var sut = new ProductControllers(_mockProductsService.Object, _mockMapper);
             // Act
-            var result = await sut.GetProductBySKU("") as BadRequestObjectResult;
+            var result = (await sut.GetProductBySKU("")).Result as BadRequestObjectResult;
             // Assert
             result.StatusCode.Should().Be(400);
             result.Value.Should().Be("No SKU Added");
         }
 
         [Fact]
-        public async Task AddProduct_OK()
+        public async Task TestAddProduct_OK()
         {
             // Arrange
             var newProduct = new ProductCreateDto { SKU = "SKU6", Name = "Product6", Category = "Category3", Price = 60.0m, PriceUnit = "item" };
-            var productsList = new List<Products>
+            var productsList = new List<ProductsModel>
             {
                 new() { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" },
                 new() { Id = 2, SKU = "SKU2", Name = "Product2", Category = "Category2", Price = 20.0m, PriceUnit = "item" },
@@ -114,9 +123,9 @@ namespace ShopCheckOut.UnitTest.Controllers
                 new() { Id = 5, SKU = "SKU5", Name = "Product5", Category = "Category2", Price = 50.0m, PriceUnit = "item" },
             };
 
-            _mockProductsService.Setup(service => service.AddProduct(It.IsAny<Products>()))
+            _mockProductsService.Setup(service => service.AddProduct(It.IsAny<ProductsModel>()))
                 .ReturnsAsync(true)
-                .Callback<Products>(product => productsList.Add(product));
+                .Callback<ProductsModel>(product => productsList.Add(product));
             _mockProductsService.Setup(service => service.GetProducts())
                 .ReturnsAsync(productsList);
 
@@ -126,7 +135,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             // Assert
             addResult.StatusCode.Should().Be(200);
             // Act
-            var getResult = await sut.GetProducts() as OkObjectResult;
+            var getResult = (await sut.GetProducts()).Result as OkObjectResult;
             // Assert
             getResult.StatusCode.Should().Be(200);
             var retrievedProducts = getResult.Value as List<ProductReadDto>;

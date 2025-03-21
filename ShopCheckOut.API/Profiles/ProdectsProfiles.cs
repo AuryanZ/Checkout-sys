@@ -8,8 +8,11 @@ namespace ShopCheckOut.API.Profiles
     {
         public ProdectsProfiles()
         {
-            CreateMap<Products, ProductReadDto>();
-            CreateMap<ProductCreateDto, Products>();
+            CreateMap<ProductsModel, ProductReadDto>()
+                .ForMember(dest => dest.PriceInfo,
+                opt => opt.MapFrom(src => $"{src.Price} per {src.PriceUnit}"));
+
+            CreateMap<ProductCreateDto, ProductsModel>();
         }
     }
 }

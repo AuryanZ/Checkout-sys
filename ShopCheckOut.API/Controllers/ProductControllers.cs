@@ -18,7 +18,7 @@ public class ProductControllers : ControllerBase
         _mapper = mapper;
     }
     [HttpGet("all")]
-    public async Task<IActionResult> GetProducts()
+    public async Task<ActionResult<List<ProductReadDto>>> GetProducts()
     {
         try
         {
@@ -33,7 +33,7 @@ public class ProductControllers : ControllerBase
     }
 
     [HttpGet(Name = "GetProductByCategory")]
-    public async Task<IActionResult> GetProductsByCategory([FromQuery] string category)
+    public async Task<ActionResult<List<ProductReadDto>>> GetProductsByCategory([FromQuery] string category)
     {
         if (string.IsNullOrEmpty(category))
         {
@@ -53,7 +53,7 @@ public class ProductControllers : ControllerBase
     }
 
     [HttpGet("{sku}", Name = "GetProductBySKU")]
-    public async Task<IActionResult> GetProductBySKU(string sku)
+    public async Task<ActionResult<ProductReadDto>> GetProductBySKU(string sku)
     {
         if (string.IsNullOrEmpty(sku))
         {
@@ -78,7 +78,7 @@ public class ProductControllers : ControllerBase
         {
             try
             {
-                var product = _mapper.Map<Products>(productCreateDto);
+                var product = _mapper.Map<ProductsModel>(productCreateDto);
                 var result = await _iProductsService.AddProduct(product);
                 if (result)
                 {

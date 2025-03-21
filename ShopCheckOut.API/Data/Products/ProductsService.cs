@@ -1,12 +1,12 @@
-﻿
+﻿using ShopCheckOut.API.Models;
+
 namespace ShopCheckOut.API.Data.Products
 {
 
-    using ShopCheckOut.API.Models;
     public class ProductsService : IProductsService
     {
         // Mocking the products list    
-        private readonly List<Products> _mockProducts = new List<Products>
+        private readonly List<ProductsModel> _mockProducts = new List<ProductsModel>
             {
                 new () { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" },
                 new () { Id = 2, SKU = "SKU2", Name = "Product2", Category = "Category2", Price = 20.0m, PriceUnit = "item" },
@@ -20,7 +20,7 @@ namespace ShopCheckOut.API.Data.Products
             //_mockProducts = mockProducts;
         }
 
-        public Task<bool> AddProduct(Products product)
+        public Task<bool> AddProduct(ProductsModel product)
         {
             try
             {
@@ -33,7 +33,7 @@ namespace ShopCheckOut.API.Data.Products
             return Task.FromResult(true);
         }
 
-        public Task<Products> GetProductBySKU(string sku)
+        public Task<ProductsModel> GetProductBySKU(string sku)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace ShopCheckOut.API.Data.Products
             }
         }
 
-        public Task<List<Products>> GetProducts()
+        public Task<List<ProductsModel>> GetProducts()
         {
             try
             {
@@ -58,7 +58,7 @@ namespace ShopCheckOut.API.Data.Products
             }
         }
 
-        public Task<List<Products>> GetProductsByCategory(string category)
+        public Task<List<ProductsModel>> GetProductsByCategory(string category)
         {
             try
             {

@@ -17,10 +17,10 @@ namespace ShopCheckOut.UnitTest.Data
 
             // Assert
             Assert.Equal(3, result.Count);
-            Assert.All<Products>(result, p => Assert.Equal("Category1", p.Category));
+            Assert.All<ProductsModel>(result, p => Assert.Equal("Category1", p.Category));
 
             Assert.Equal(2, result2.Count);
-            Assert.All<Products>(result2, p => Assert.Equal("Category2", p.Category));
+            Assert.All<ProductsModel>(result2, p => Assert.Equal("Category2", p.Category));
         }
 
         [Fact]

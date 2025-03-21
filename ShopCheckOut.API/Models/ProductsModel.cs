@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopCheckOut.API.Models
 {
-    public class Products
+    public class ProductsModel
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint Id { get; set; }
+        public int Id { get; set; }
         [Required]
         public string SKU { get; set; }
         [Required]

@@ -1,0 +1,10 @@
+﻿using ShopCheckOut.API.Models;
+namespace ShopCheckOut.API.Data.Orders
+{
+    public interface IOrderService
+    {
+        Task<OrdersModel> NewOrder(string? customerId);
+
+        Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity);
+    }
+}
