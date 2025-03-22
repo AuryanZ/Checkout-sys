@@ -31,7 +31,7 @@ namespace ShopCheckOut.UnitTest.Data
                 SKU = "SKU1",
                 Name = "Product1",
                 Category = "Category1",
-                Price = 10.0m,
+                Price = 100,
                 PriceUnit = "kg"
             };
             // Act
@@ -40,7 +40,7 @@ namespace ShopCheckOut.UnitTest.Data
             // Assert
             Assert.NotNull(result);
             Assert.Equal(1, result.Id);
-            Assert.Equal(((decimal)120.0), result.TotalAmount);
+            Assert.Equal(860, result.TotalAmount);
 
         }
 
@@ -54,7 +54,7 @@ namespace ShopCheckOut.UnitTest.Data
             // Assert
             Assert.NotNull(result);
             Assert.Equal(1, result.Id);
-            Assert.Equal((decimal)80.0, result.TotalAmount);
+            Assert.Equal(460, result.TotalAmount);
         }
 
         [Fact]
@@ -84,7 +84,7 @@ namespace ShopCheckOut.UnitTest.Data
             var result = await service.OrderCheckOut(1);
             Assert.NotNull(result);
             Assert.Equal(1, result.Id);
-            Assert.Equal((decimal)90.0, result.TotalAmount);
+            Assert.Equal(560, result.TotalAmount);
         }
     }
 }

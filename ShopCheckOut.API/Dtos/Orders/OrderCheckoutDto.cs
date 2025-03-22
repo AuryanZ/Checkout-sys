@@ -6,6 +6,6 @@
         public string? CustomerId { get; set; }
         public DateTime OrderDate { get; set; }
         public List<ItemUpdateDto> OrderItems { get; set; }
-        public decimal TotalAmount { get; set; }
+        public int TotalAmount { get; set; }
     }
 }

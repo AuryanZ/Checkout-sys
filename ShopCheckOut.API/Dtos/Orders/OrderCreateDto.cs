@@ -3,6 +3,6 @@
     public class OrderCreateDto
     {
         public int Id { get; set; }
-        public decimal TotalAmount { get; set; }
+        public int TotalAmount { get; set; }
     }
 }

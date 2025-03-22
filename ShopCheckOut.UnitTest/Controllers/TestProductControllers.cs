@@ -33,9 +33,9 @@ namespace ShopCheckOut.UnitTest.Controllers
             _mockProductsService.Setup(service => service.GetProductsByCategory("Category1"))
                 .ReturnsAsync(new List<ProductsModel>
                 {
-                        new() { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" },
-                        new() { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 30.0m, PriceUnit = "g" },
-                        new() { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 40.0m, PriceUnit = "kg" },
+                        new() { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
+                        new() { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
+                        new() { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
                 });
             var sut = new ProductController(_mockProductsService.Object, _mockMapper);
 
@@ -49,9 +49,9 @@ namespace ShopCheckOut.UnitTest.Controllers
             products.Should().OnlyContain(p => p.Category == "Category1");
             products.Should().BeEquivalentTo(
                 new List<ProductReadDto> {
-                new() { SKU = "SKU1", Name = "Product1", Category = "Category1", PriceInfo = "10.0 per kg" },
-                new() {  SKU = "SKU3", Name = "Product3",Brand = "Foo", Category = "Category1", PriceInfo = "30.0 per g"},
-                new() {  SKU = "SKU4", Name = "Product4", Category = "Category1", PriceInfo = "40.0 per kg" }
+                new() { SKU = "SKU1", Name = "Product1", Category = "Category1", PriceInfo = "100 per kg" },
+                new() {  SKU = "SKU3", Name = "Product3",Brand = "Foo", Category = "Category1", PriceInfo = "130 per g"},
+                new() {  SKU = "SKU4", Name = "Product4", Category = "Category1", PriceInfo = "140 per kg" }
                 });
         }
 
@@ -75,9 +75,9 @@ namespace ShopCheckOut.UnitTest.Controllers
         {
             // Arrange
             _mockProductsService.Setup(service => service.GetProductBySKU("SKU1"))
-                .ReturnsAsync(new ProductsModel { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" });
+                .ReturnsAsync(new ProductsModel { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" });
             _mockProductsService.Setup(service => service.GetProductBySKU("SKU3"))
-                .ReturnsAsync(new ProductsModel { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 30.0m, PriceUnit = "g" });
+                .ReturnsAsync(new ProductsModel { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" });
 
             var sut = new ProductController(_mockProductsService.Object, _mockMapper);
 
@@ -116,11 +116,11 @@ namespace ShopCheckOut.UnitTest.Controllers
             var newProduct = new ProductCreateDto { SKU = "SKU6", Name = "Product6", Category = "Category3", Price = 60.0m, PriceUnit = "item" };
             var productsList = new List<ProductsModel>
             {
-                new() { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" },
-                new() { Id = 2, SKU = "SKU2", Name = "Product2", Category = "Category2", Price = 20.0m, PriceUnit = "item" },
-                new() { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" },
-                new() { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 40.0m, PriceUnit = "kg" },
-                new() { Id = 5, SKU = "SKU5", Name = "Product5", Category = "Category2", Price = 50.0m, PriceUnit = "item" },
+                new () { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
+                new () { Id = 2, SKU = "SKU2", Name = "Product2", Brand = "MockBrand", Category = "Category2", Price = 120, PriceUnit = "item" },
+                new () { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
+                new () { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
+                new () { Id = 5, SKU = "SKU5", Name = "Product5", Category = "Category2", Price = 150, PriceUnit = "item" },
             };
 
             _mockProductsService.Setup(service => service.AddProduct(It.IsAny<ProductsModel>()))
