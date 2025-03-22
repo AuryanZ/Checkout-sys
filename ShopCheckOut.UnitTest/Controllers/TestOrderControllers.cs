@@ -175,7 +175,7 @@ namespace ShopCheckOut.UnitTest.Controllers
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
-            Assert.Equal("Invalid product Sku", badRequestResult.Value);
+            Assert.Equivalent(new ErrorResponse("Connot find product xyz", "Invalid product Sku"), badRequestResult.Value);
         }
         [Fact]
         public async Task DeleteItemFromOrder_ReturnsBadRequest_WhenInvalidOrderId()

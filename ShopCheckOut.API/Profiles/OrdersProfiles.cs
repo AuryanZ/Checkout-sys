@@ -13,8 +13,6 @@ namespace ShopCheckOut.API.Profiles
             CreateMap<OrderItems, ItemUpdateDto>()
                 .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
-            CreateMap<OrdersModel, OrderCreateDto>();
-
             CreateMap<OrderItems, ItemUpdateDto>()
                 .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 

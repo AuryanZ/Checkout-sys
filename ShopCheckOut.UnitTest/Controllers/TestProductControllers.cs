@@ -67,7 +67,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             var result = (await sut.GetProductsByCategory("")).Result as BadRequestObjectResult;
             // Assert
             result.StatusCode.Should().Be(400);
-            result.Value.Should().Be("No Category Added");
+            Assert.Equivalent(new ErrorResponse("Cannot Get Products", "Request category"), result.Value);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             var result = (await sut.GetProductBySKU("")).Result as BadRequestObjectResult;
             // Assert
             result.StatusCode.Should().Be(400);
-            result.Value.Should().Be("No SKU Added");
+            Assert.Equivalent(new ErrorResponse("Cannot Get Products", "Request SKU"), result.Value);
         }
 
         [Fact]

@@ -7,10 +7,8 @@ namespace ShopCheckOut.API.Data.Products
     {
         // Mocking the products list    
         private readonly List<ProductsModel> _mockProducts;
-        //public ProductsService(List<Products> mockProducts)
         public ProductsService()
         {
-            //_mockProducts = mockProducts;
             _mockProducts = new MockData().GetMockProducts();
         }
 
@@ -22,7 +20,7 @@ namespace ShopCheckOut.API.Data.Products
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception("Error adding product: " + ex);
             }
             return Task.FromResult(true);
         }

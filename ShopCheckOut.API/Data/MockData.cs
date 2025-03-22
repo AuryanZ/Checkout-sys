@@ -46,8 +46,5 @@ namespace ShopCheckOut.API.Data
             return _mockOrders;
         }
 
-
-
-
     }
 }

@@ -46,7 +46,7 @@ namespace ShopCheckOut.API.Data.Orders
                 // If product exists, increase quantity
                 existingItem.Quantity += quantity;
             }
-            else
+            else // If product does not exist, add new order item
             {
                 var newOrderItem = new OrderItems
                 {
@@ -122,7 +122,6 @@ namespace ShopCheckOut.API.Data.Orders
             {
                 order.OrderItems = tempOrderItem;
                 order.TotalAmount = amount;
-                return Task.FromResult(order);
             }
 
             return Task.FromResult(order);

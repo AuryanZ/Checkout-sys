@@ -28,7 +28,8 @@ public class ProductController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+
+            return BadRequest(new ErrorResponse("Cannot Get Products", ex.Message));
         }
     }
 
@@ -37,7 +38,7 @@ public class ProductController : ControllerBase
     {
         if (string.IsNullOrEmpty(category))
         {
-            return BadRequest("No Category Added");
+            return BadRequest(new ErrorResponse("Cannot Get Products", "Request category"));
         }
         try
         {
@@ -47,7 +48,7 @@ public class ProductController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new ErrorResponse($"Cannot Get Products in {category}", ex.Message));
 
         }
     }
@@ -57,7 +58,7 @@ public class ProductController : ControllerBase
     {
         if (string.IsNullOrEmpty(sku))
         {
-            return BadRequest("No SKU Added");
+            return BadRequest(new ErrorResponse("Cannot Get Products", "Request SKU"));
         }
         try
         {
@@ -71,7 +72,7 @@ public class ProductController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new ErrorResponse($"Cannot Get Products {sku}", ex.Message));
         }
     }
 
@@ -88,16 +89,16 @@ public class ProductController : ControllerBase
                 {
                     return Ok(result);
                 }
-                return BadRequest("Product Add not Success");
+                return BadRequest(new ErrorResponse("Product Add not Success", "Serviec return null"));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ErrorResponse("Prodcut not created", ex.Message));
             }
         }
         else
         {
-            return BadRequest("No Product Added");
+            return BadRequest(new ErrorResponse("Product Add not Success", "Requset data missing"));
         }
     }
 }
