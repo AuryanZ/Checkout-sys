@@ -8,7 +8,9 @@ namespace ShopCheckOut.API.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        [ForeignKey("OrderId")]
         public int OrderId { get; set; }
+        [ForeignKey("ProductId")]
         public int ProductId { get; set; }
         public int Quantity { get; set; }
         public ProductsModel Product { get; set; }

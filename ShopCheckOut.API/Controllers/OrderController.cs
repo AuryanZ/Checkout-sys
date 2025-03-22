@@ -29,31 +29,22 @@ public class OrderController : ControllerBase
     [HttpPost(Name = "NewOrder")]
     public async Task<ActionResult<OrderCreateDto>> NewOrder([FromQuery] string? CustomerId)
     {
-        if (!string.IsNullOrEmpty(CustomerId))
+        try
         {
-            // todo: 
-            // 1. Verify CustomerId
-            // 2. Create Order and link to Customer
-        }
-        else
-        {
-            try
-            {
-                var newOrder = await _orderService.NewOrder(CustomerId);
-                var result = _mapper.Map<OrderCreateDto>(newOrder);
+            var newOrder = await _orderService.NewOrder(CustomerId);
+            var result = _mapper.Map<OrderCreateDto>(newOrder);
 
-                if (result != null)
-                {
-                    return Ok(result);
-                }
-                return BadRequest("New Order Not Created");
-            }
-            catch (Exception ex)
+            if (result != null)
             {
-                return BadRequest(ex.Message);
+                return Ok(result);
             }
+            return BadRequest(new ErrorResponse("New Order Not Created", "No data found"));
         }
-        return BadRequest("no action found");
+        catch (Exception ex)
+        {
+
+            return BadRequest(new ErrorResponse("New Order Not Created", ex.Message));
+        }
     }
 
     [HttpPost("item", Name = "AddItemToOrder")]
@@ -63,7 +54,7 @@ public class OrderController : ControllerBase
         int _quantity = 0;
         if (string.IsNullOrEmpty(request.Quantity) || string.IsNullOrEmpty(request.ItemSKU))
         {
-            return BadRequest("No order id or SKu");
+            return BadRequest(new ErrorResponse("No order id or SKu", "Requset data missing"));
         }
         try
         {
@@ -78,14 +69,15 @@ public class OrderController : ControllerBase
             var order = await _orderService.AddItemToOrder(_orderId, product, _quantity);
             if (order == null)
             {
-                return NotFound("Order not Found");
+                return BadRequest(new ErrorResponse($"Cannot add item to {orderId}", "Order not Found"));
+
             }
             var result = _mapper.Map<OrderUpdateDto>(order);
             return Ok(result);
         }
         catch (Exception ex)
         {
-            return BadRequest("Illegal ID. Error: " + ex.Message);
+            return BadRequest(new ErrorResponse("Illegal ID. Error: ", ex.Message));
         }
     }
 
@@ -96,7 +88,7 @@ public class OrderController : ControllerBase
             || string.IsNullOrEmpty(request.ItemSku)
             || string.IsNullOrEmpty(orderId))
         {
-            return BadRequest("No order id or Sku");
+            return BadRequest(new ErrorResponse("Remove item Error: ", "No order id or Sku"));
         }
         try
         {
@@ -105,20 +97,23 @@ public class OrderController : ControllerBase
             string productId = await _productsService.GetProductIdBySku(request.ItemSku);
             if (string.IsNullOrEmpty(productId))
             {
-                return BadRequest("Invalid product Sku");
+                return BadRequest(new ErrorResponse($"Connot find product {request.ItemSku}", "Invalid product Sku"));
+
             }
             int _productId = int.Parse(productId);
             var order = await _orderService.DeleteItemFromOrder(_orderId, _productId, _quantity);
             if (order == null)
             {
                 return NotFound("Order not Found");
+
             }
             var result = _mapper.Map<OrderUpdateDto>(order);
             return Ok(result);
         }
         catch (Exception ex)
         {
-            return BadRequest(ex);
+
+            return BadRequest(new ErrorResponse("Item not removed", ex.Message));
         }
     }
 
@@ -127,7 +122,7 @@ public class OrderController : ControllerBase
     {
         if (string.IsNullOrEmpty(orderId))
         {
-            return BadRequest("No order id");
+            return BadRequest(new ErrorResponse("Check out Error", "No order id"));
         }
         try
         {
@@ -142,7 +137,7 @@ public class OrderController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex);
+            return BadRequest(new ErrorResponse("Check out Error", ex.Message));
         }
     }
 }
