@@ -67,7 +67,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             var result = (await sut.GetProductsByCategory("")).Result as BadRequestObjectResult;
             // Assert
             result.StatusCode.Should().Be(400);
-            result.Value.Should().Be("No Query Added");
+            result.Value.Should().Be("No Category Added");
         }
 
         [Fact]

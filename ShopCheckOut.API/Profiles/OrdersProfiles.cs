@@ -23,6 +23,12 @@ namespace ShopCheckOut.API.Profiles
                            opt => opt.MapFrom(src => src.OrderItems))
                 .ForMember(dest => dest.TotalAmount,
                            opt => opt.MapFrom(src => src.TotalAmount));
+
+            CreateMap<OrdersModel, OrderCheckoutDto>()
+                .ForMember(dest => dest.OrderItems,
+                           opt => opt.MapFrom(src => src.OrderItems))
+                .ForMember(dest => dest.TotalAmount,
+                           opt => opt.MapFrom(src => src.TotalAmount));
         }
     }
 }

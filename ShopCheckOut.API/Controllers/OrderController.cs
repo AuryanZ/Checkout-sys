@@ -69,37 +69,34 @@ public class OrderController : ControllerBase
         {
             _orderId = int.Parse(orderId);
             _quantity = int.Parse(request.Quantity);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest("Illegal ID. Error: " + ex.Message);
-        }
 
-        ProductsModel product = await _productsService.GetProductBySKU(request.ItemSKU);
-        if (product == null)
-        {
-            return NotFound();
-        }
-        try
-        {
+            ProductsModel product = await _productsService.GetProductBySKU(request.ItemSKU);
+            if (product == null)
+            {
+                return NotFound();
+            }
             var order = await _orderService.AddItemToOrder(_orderId, product, _quantity);
+            if (order == null)
+            {
+                return NotFound("Order not Found");
+            }
             var result = _mapper.Map<OrderUpdateDto>(order);
             return Ok(result);
         }
         catch (Exception ex)
         {
-            return BadRequest(ex);
+            return BadRequest("Illegal ID. Error: " + ex.Message);
         }
     }
 
     [HttpDelete("item", Name = "RemoveItemFromOrder")]
-    public async Task<IActionResult> RemoveItemFromOrder([FromQuery] string orderId, [FromBody] RemoveItemRequest request)
+    public async Task<ActionResult<OrderUpdateDto>> RemoveItemFromOrder([FromQuery] string orderId, [FromBody] RemoveItemRequest request)
     {
         if (string.IsNullOrEmpty(request.Quantity)
             || string.IsNullOrEmpty(request.ItemSku)
             || string.IsNullOrEmpty(orderId))
         {
-            return BadRequest("No order id or SKu");
+            return BadRequest("No order id or Sku");
         }
         try
         {
@@ -125,5 +122,27 @@ public class OrderController : ControllerBase
         }
     }
 
-
+    [HttpGet("checkout", Name = "CheckOutOrder")]
+    public async Task<ActionResult<OrderCheckoutDto>> CheckOutOrder([FromQuery] string orderId)
+    {
+        if (string.IsNullOrEmpty(orderId))
+        {
+            return BadRequest("No order id");
+        }
+        try
+        {
+            int _orderId = int.Parse(orderId);
+            var order = await _orderService.OrderCheckOut(_orderId);
+            if (order == null)
+            {
+                return NotFound("Order not Found");
+            }
+            var result = _mapper.Map<OrderCheckoutDto>(order);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex);
+        }
+    }
 }

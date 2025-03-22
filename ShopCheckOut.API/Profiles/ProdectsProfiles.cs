@@ -13,6 +13,7 @@ namespace ShopCheckOut.API.Profiles
                 opt => opt.MapFrom(src => $"{src.Price} per {src.PriceUnit}"));
 
             CreateMap<ProductCreateDto, ProductsModel>();
+
         }
     }
 }

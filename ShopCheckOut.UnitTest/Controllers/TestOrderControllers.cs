@@ -37,6 +37,11 @@ namespace ShopCheckOut.UnitTest.Controllers
                                opt => opt.MapFrom(src => src.OrderItems))
                     .ForMember(dest => dest.TotalAmount,
                                opt => opt.MapFrom(src => src.TotalAmount));
+                cfg.CreateMap<OrdersModel, OrderCheckoutDto>()
+                .ForMember(dest => dest.OrderItems,
+                           opt => opt.MapFrom(src => src.OrderItems))
+                .ForMember(dest => dest.TotalAmount,
+                           opt => opt.MapFrom(src => src.TotalAmount));
             });
             _mockMapper = config.CreateMapper();
 
@@ -193,9 +198,16 @@ namespace ShopCheckOut.UnitTest.Controllers
         {
             // Arrange
             var _mockProduct = new MockData().GetMockProducts();
+            List<OrderItems> mockOrderItem = new List<OrderItems>()
+            {
+                new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = _mockProduct.FirstOrDefault(p => p.Id == 1), Quantity = 2 },
+                new OrderItems() { Id = 11, OrderId = 1, ProductId = 4, Product = _mockProduct.FirstOrDefault(p => p.Id == 4), Quantity = 1 },
+                new OrderItems() { Id = 12, OrderId = 1, ProductId = 2, Product = _mockProduct.FirstOrDefault(p => p.Id == 2), Quantity = 1 },
+            };
+
             _mockProductService.Setup(p => p.GetProductIdBySku(It.IsAny<string>())).ReturnsAsync("1");
             _mockOrdersService.Setup(o => o.DeleteItemFromOrder(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync(new OrdersModel { Id = 1, TotalAmount = 80.0m });
+                .ReturnsAsync(new OrdersModel { Id = 1, OrderItems = mockOrderItem, TotalAmount = 80.0m });
             // Act
             var mockRequest = new RemoveItemRequest { Quantity = "1", ItemSku = "SKU1" };
             var result = await _controller.RemoveItemFromOrder("1", mockRequest);
@@ -203,6 +215,51 @@ namespace ShopCheckOut.UnitTest.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.NotNull(okResult);
             var items = Assert.IsType<OrderUpdateDto>(okResult.Value);
+            Assert.NotNull(items);
+            Assert.Equal(1, items.Id);
+            Assert.Equal(80.0m, items.TotalAmount);
+        }
+
+        [Fact]
+        public async Task TestCheckOutOrder_RetrunBadRequest_WhenOrderIdisEmpty()
+        {
+            // Act
+            var result = await _controller.CheckOutOrder("");
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task TestCheckOutOrder_ReturnsNotFound_WhenOrderDoesNotExist()
+        {
+            // Arrange
+            _mockOrdersService.Setup(o => o.OrderCheckOut(It.IsAny<int>()))
+                .ReturnsAsync((OrdersModel)null);
+            // Act
+            var result = await _controller.CheckOutOrder("0");
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task TestCheckOutOrder_Success()
+        {
+            // Arrange
+            var _mockProduct = new MockData().GetMockProducts();
+            List<OrderItems> mockOrderItem = new List<OrderItems>()
+            {
+                new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = _mockProduct.FirstOrDefault(p => p.Id == 1), Quantity = 2 },
+                new OrderItems() { Id = 11, OrderId = 1, ProductId = 4, Product = _mockProduct.FirstOrDefault(p => p.Id == 4), Quantity = 1 },
+                new OrderItems() { Id = 12, OrderId = 1, ProductId = 2, Product = _mockProduct.FirstOrDefault(p => p.Id == 2), Quantity = 1 },
+            };
+            _mockOrdersService.Setup(o => o.OrderCheckOut(It.IsAny<int>()))
+                .ReturnsAsync(new OrdersModel { Id = 1, OrderItems = mockOrderItem, TotalAmount = 80.0m });
+            // Act
+            var result = await _controller.CheckOutOrder("1");
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.NotNull(okResult);
+            var items = Assert.IsType<OrderCheckoutDto>(okResult.Value);
             Assert.NotNull(items);
             Assert.Equal(1, items.Id);
             Assert.Equal(80.0m, items.TotalAmount);

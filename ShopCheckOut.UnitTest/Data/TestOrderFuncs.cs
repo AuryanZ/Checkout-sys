@@ -50,7 +50,7 @@ namespace ShopCheckOut.UnitTest.Data
             // Arrange
             var service = new OrderService();
             // Act
-            var result = await service.DeleteItemFromOrder(1, 10, 1);
+            var result = await service.DeleteItemFromOrder(1, 1, 1);
             // Assert
             Assert.NotNull(result);
             Assert.Equal(1, result.Id);
@@ -63,10 +63,28 @@ namespace ShopCheckOut.UnitTest.Data
             var service = new OrderService();
 
             await Assert.ThrowsAsync<Exception>(
-                async () => await service.DeleteItemFromOrder(1, 1, 1)
+                async () => await service.DeleteItemFromOrder(1, 10, 1)
                 );
 
         }
 
+        [Fact]
+        public async Task TestOrderCheckOut_withInvalidOrder()
+        {
+            var service = new OrderService();
+            await Assert.ThrowsAsync<Exception>(
+                async () => await service.OrderCheckOut(10)
+                );
+        }
+
+        [Fact]
+        public async Task TestOrderCheckOut_Ok()
+        {
+            var service = new OrderService();
+            var result = await service.OrderCheckOut(1);
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Id);
+            Assert.Equal((decimal)90.0, result.TotalAmount);
+        }
     }
 }

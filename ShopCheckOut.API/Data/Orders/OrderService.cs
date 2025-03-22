@@ -65,7 +65,7 @@ namespace ShopCheckOut.API.Data.Orders
             return Task.FromResult(order);
         }
 
-        public Task<OrdersModel> DeleteItemFromOrder(int orderId, int orderItemId, int quantityRemove)
+        public Task<OrdersModel> DeleteItemFromOrder(int orderId, int productId, int quantityRemove)
         {
             var order = _mockOrders.FirstOrDefault(o => o.Id == orderId) ??
                 throw new Exception($"Order with ID {orderId} not found.");
@@ -74,11 +74,11 @@ namespace ShopCheckOut.API.Data.Orders
                 throw new Exception($"Order with ID {orderId} not found.");
             }
 
-            var orderItem = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId) ??
-                throw new Exception($"Order Item with ID {orderItemId} not found.");
+            var orderItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == productId) ??
+                throw new Exception($"Order Item with ID {productId} not found.");
             if (orderItem == null)
             {
-                throw new Exception($"Order Item with ID {orderItemId} not found.");
+                throw new Exception($"Order Item with ID {productId} not found.");
             }
             if (quantityRemove > 0)
             {
@@ -98,5 +98,35 @@ namespace ShopCheckOut.API.Data.Orders
             return Task.FromResult(order);
         }
 
+        public Task<OrdersModel> OrderCheckOut(int orderId)
+        {
+            var order = _mockOrders.FirstOrDefault(o => o.Id == orderId) ??
+                throw new Exception("Invilide Order Id");
+            if (order == null)
+            {
+                throw new Exception("Invilide Order Id");
+            }
+
+            //return Task.FromResult(order); // if validation not required
+
+            var orderItems = order.OrderItems;
+            List<OrderItems> tempOrderItem = new List<OrderItems>();
+            var amount = 0.0m;
+            foreach (var item in orderItems)
+            {
+                amount += item.Product.Price * item.Quantity;
+                tempOrderItem.Add(item);
+            }
+
+            if (amount != order.TotalAmount)
+            {
+                order.OrderItems = tempOrderItem;
+                order.TotalAmount = amount;
+                return Task.FromResult(order);
+            }
+
+            return Task.FromResult(order);
+
+        }
     }
 }

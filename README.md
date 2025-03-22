@@ -17,4 +17,15 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
     - [x] New order
     - [x] add order item
     - [x] Delete order item
-    - [ ] Checkout
+    - [X] Checkout
+
+2. Add Discount feature
+    - [ ] Add Discount
+    - [ ] Delete Discount
+    - [ ] Update Discount
+    - [ ] Get Discount by SKU
+
+3. Apply Discount
+    - [ ] Add totalSaved field in Order
+    - [ ] Apply Discount in Checkout
+    - [ ] "Add order item" function should check if the discount is available for the product
