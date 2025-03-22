@@ -11,6 +11,6 @@ namespace ShopCheckOut.API.Models
         public string? CustomerId { get; set; }
         public DateTime OrderDate { get; set; }
         public List<OrderItems> OrderItems { get; set; }
-        public decimal TotalAmount { get; set; }
+        public int TotalAmount { get; set; }
     }
 }

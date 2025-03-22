@@ -59,7 +59,7 @@ namespace ShopCheckOut.API.Data.Orders
 
                 order.OrderItems.Add(newOrderItem);
             }
-            decimal _price = product.Price * quantity;
+            int _price = product.Price * quantity;
             order.TotalAmount += _price;
 
             return Task.FromResult(order);
@@ -111,7 +111,7 @@ namespace ShopCheckOut.API.Data.Orders
 
             var orderItems = order.OrderItems;
             List<OrderItems> tempOrderItem = new List<OrderItems>();
-            var amount = 0.0m;
+            var amount = 0;
             foreach (var item in orderItems)
             {
                 amount += item.Product.Price * item.Quantity;

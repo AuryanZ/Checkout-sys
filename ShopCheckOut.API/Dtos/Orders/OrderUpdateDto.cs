@@ -4,6 +4,6 @@
     {
         public int Id { get; set; }
         public List<ItemUpdateDto> OrderItems { get; set; }
-        public decimal TotalAmount { get; set; }
+        public int TotalAmount { get; set; }
     }
 }
