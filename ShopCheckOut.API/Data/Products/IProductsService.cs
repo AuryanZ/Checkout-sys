@@ -7,6 +7,9 @@ namespace ShopCheckOut.API.Data.Products
         Task<List<ProductsModel>> GetProducts();
         Task<List<ProductsModel>> GetProductsByCategory(string category);
         Task<ProductsModel> GetProductBySKU(string sku);
+
+        Task<string> GetProductIdBySku(string sku);
         Task<bool> AddProduct(ProductsModel product);
+
     }
 }

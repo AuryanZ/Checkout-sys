@@ -34,7 +34,7 @@ namespace ShopCheckOut.UnitTest.Controllers
                 .ReturnsAsync(new List<ProductsModel>
                 {
                         new() { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" },
-                        new() { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" },
+                        new() { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 30.0m, PriceUnit = "g" },
                         new() { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 40.0m, PriceUnit = "kg" },
                 });
             var sut = new ProductController(_mockProductsService.Object, _mockMapper);
@@ -50,7 +50,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             products.Should().BeEquivalentTo(
                 new List<ProductReadDto> {
                 new() { SKU = "SKU1", Name = "Product1", Category = "Category1", PriceInfo = "10.0 per kg" },
-                new() {  SKU = "SKU3", Name = "Product3", Category = "Category1", PriceInfo = "30.0 per g"},
+                new() {  SKU = "SKU3", Name = "Product3",Brand = "Foo", Category = "Category1", PriceInfo = "30.0 per g"},
                 new() {  SKU = "SKU4", Name = "Product4", Category = "Category1", PriceInfo = "40.0 per kg" }
                 });
         }
@@ -77,7 +77,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             _mockProductsService.Setup(service => service.GetProductBySKU("SKU1"))
                 .ReturnsAsync(new ProductsModel { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 10.0m, PriceUnit = "kg" });
             _mockProductsService.Setup(service => service.GetProductBySKU("SKU3"))
-                .ReturnsAsync(new ProductsModel { Id = 3, SKU = "SKU3", Name = "Product3", Category = "Category1", Price = 30.0m, PriceUnit = "g" });
+                .ReturnsAsync(new ProductsModel { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 30.0m, PriceUnit = "g" });
 
             var sut = new ProductController(_mockProductsService.Object, _mockMapper);
 

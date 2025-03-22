@@ -6,5 +6,7 @@ namespace ShopCheckOut.API.Data.Orders
         Task<OrdersModel> NewOrder(string? customerId);
 
         Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity);
+
+        Task<OrdersModel> DeleteItemFromOrder(int orderId, int orderItemId, int quantityRemove);
     }
 }

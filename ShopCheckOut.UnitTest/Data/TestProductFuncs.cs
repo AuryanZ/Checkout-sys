@@ -46,5 +46,14 @@ namespace ShopCheckOut.UnitTest.Data
             // Assert
             Assert.Equal(5, result.Count);
         }
+
+        [Fact]
+        public async Task TestGetProductIdbySKU_Error()
+        {
+            var service = new ProductsService();
+            await Assert.ThrowsAsync<Exception>(
+                async () => await service.GetProductIdBySku("xyz")
+                );
+        }
     }
 }

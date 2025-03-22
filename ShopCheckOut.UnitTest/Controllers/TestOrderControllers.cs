@@ -154,5 +154,58 @@ namespace ShopCheckOut.UnitTest.Controllers
             Assert.Equal(20.0m, items.TotalAmount);
         }
 
+        [Fact]
+        public async Task DeleteItemFromOrder_ReturnsBadRequest_WhenParametersAreMissing()
+        {
+            var mockRequest = new RemoveItemRequest { Quantity = "0", ItemSku = "" };
+            var result = await _controller.RemoveItemFromOrder("", mockRequest);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+        [Fact]
+        public async Task DeleteItemFromOrder_ReturnsBadRequest_WhenInvalidSku()
+        {
+            // Act
+            var mockRequest = new RemoveItemRequest { Quantity = "0", ItemSku = "xyz" };
+            var result = await _controller.RemoveItemFromOrder("1", mockRequest);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Invalid product Sku", badRequestResult.Value);
+        }
+        [Fact]
+        public async Task DeleteItemFromOrder_ReturnsBadRequest_WhenInvalidOrderId()
+        {
+            // Arrange
+            var _mockProduct = new MockData().GetMockProducts();
+            _mockProductService.Setup(p => p.GetProductIdBySku(It.IsAny<string>())).ReturnsAsync("1");
+            _mockOrdersService.Setup(o => o.DeleteItemFromOrder(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((OrdersModel)null);
+            // Act
+            var mockRequest = new RemoveItemRequest { Quantity = "1", ItemSku = "SKU1" };
+            var result = await _controller.RemoveItemFromOrder("0", mockRequest);
+            // Assert
+            var badRequestResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Order not Found", badRequestResult.Value);
+        }
+
+        [Fact]
+        public async Task DeleteItemFromOrder_ReturnsOk()
+        {
+            // Arrange
+            var _mockProduct = new MockData().GetMockProducts();
+            _mockProductService.Setup(p => p.GetProductIdBySku(It.IsAny<string>())).ReturnsAsync("1");
+            _mockOrdersService.Setup(o => o.DeleteItemFromOrder(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(new OrdersModel { Id = 1, TotalAmount = 80.0m });
+            // Act
+            var mockRequest = new RemoveItemRequest { Quantity = "1", ItemSku = "SKU1" };
+            var result = await _controller.RemoveItemFromOrder("1", mockRequest);
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult);
+            var items = Assert.IsType<OrderUpdateDto>(okResult.Value);
+            Assert.NotNull(items);
+            Assert.Equal(1, items.Id);
+            Assert.Equal(80.0m, items.TotalAmount);
+        }
     }
 }

@@ -4,26 +4,13 @@ namespace ShopCheckOut.API.Data.Orders
 {
     public class OrderService : IOrderService
     {
-        // Mocking the Order list    
-        private readonly List<OrdersModel> _mockOrders = new List<OrdersModel>
-            {
-                new() {Id = 1, CustomerId = null, OrderDate= new DateTime(2025, 3, 5),
-                OrderItems =new List<OrderItems>{
-                            new OrderItems() {Id =10, OrderId = 1, ProductId = 1, Quantity = 3},
-                            new OrderItems() {Id =11, OrderId = 1, ProductId=4, Quantity = 1},
-                            new OrderItems() {Id =12, OrderId = 1, ProductId = 2, Quantity = 1},
-                            },
-                TotalAmount = 90.0m
-                },
-                new() {Id = 2, CustomerId = "0009123", OrderDate = new DateTime(2025,3,21),
-                OrderItems= new List<OrderItems>{
-                            new OrderItems() {Id =13, OrderId = 2, ProductId = 2, Quantity = 1},
-                            new OrderItems() {Id =14, OrderId = 2, ProductId=3, Quantity = 4},
-                            new OrderItems() {Id =15, OrderId = 2, ProductId = 5, Quantity = 1},
-                },
-                TotalAmount = 190.0m
-                }
-            };
+        private readonly List<OrdersModel> _mockOrders;
+
+        public OrderService()
+        {
+            _mockOrders = new MockData().GetMockOrders();
+        }
+
         public Task<OrdersModel> NewOrder(string? customerId)
         {
             var newOrder = new OrdersModel
@@ -66,6 +53,7 @@ namespace ShopCheckOut.API.Data.Orders
                     Id = order.OrderItems.Any() ? order.OrderItems.Max(oi => oi.Id) + 1 : 1,
                     OrderId = orderId,
                     ProductId = product.Id,
+                    Product = product,
                     Quantity = quantity
                 };
 
@@ -76,5 +64,39 @@ namespace ShopCheckOut.API.Data.Orders
 
             return Task.FromResult(order);
         }
+
+        public Task<OrdersModel> DeleteItemFromOrder(int orderId, int orderItemId, int quantityRemove)
+        {
+            var order = _mockOrders.FirstOrDefault(o => o.Id == orderId) ??
+                throw new Exception($"Order with ID {orderId} not found.");
+            if (order == null)
+            {
+                throw new Exception($"Order with ID {orderId} not found.");
+            }
+
+            var orderItem = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId) ??
+                throw new Exception($"Order Item with ID {orderItemId} not found.");
+            if (orderItem == null)
+            {
+                throw new Exception($"Order Item with ID {orderItemId} not found.");
+            }
+            if (quantityRemove > 0)
+            {
+                int quantityDiff = orderItem.Quantity - quantityRemove;
+                if (quantityDiff <= 0)
+                {
+                    order.OrderItems.Remove(orderItem);
+                    order.TotalAmount -= orderItem.Product.Price * orderItem.Quantity;
+                }
+                else
+                {
+                    orderItem.Quantity = quantityDiff;
+                    order.TotalAmount -= orderItem.Product.Price * quantityRemove;
+                }
+            }
+
+            return Task.FromResult(order);
+        }
+
     }
 }

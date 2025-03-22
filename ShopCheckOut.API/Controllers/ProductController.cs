@@ -37,7 +37,7 @@ public class ProductController : ControllerBase
     {
         if (string.IsNullOrEmpty(category))
         {
-            return BadRequest("No Query Added");
+            return BadRequest("No Category Added");
         }
         try
         {
@@ -62,6 +62,10 @@ public class ProductController : ControllerBase
         try
         {
             var product = await _iProductsService.GetProductBySKU(sku);
+            if (product == null)
+            {
+                return NotFound();
+            }
             var result = _mapper.Map<ProductReadDto>(product);
             return Ok(result);
         }

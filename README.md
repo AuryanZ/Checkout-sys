@@ -16,5 +16,5 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
     - [x] add product
     - [x] New order
     - [x] add order item
-    - [ ] Delete order item
+    - [x] Delete order item
     - [ ] Checkout

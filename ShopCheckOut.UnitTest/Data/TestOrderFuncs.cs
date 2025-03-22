@@ -43,5 +43,30 @@ namespace ShopCheckOut.UnitTest.Data
             Assert.Equal(((decimal)120.0), result.TotalAmount);
 
         }
+
+        [Fact]
+        public async Task TestDeletItemFromOrder_Ok()
+        {
+            // Arrange
+            var service = new OrderService();
+            // Act
+            var result = await service.DeleteItemFromOrder(1, 10, 1);
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Id);
+            Assert.Equal((decimal)80.0, result.TotalAmount);
+        }
+
+        [Fact]
+        public async Task TestDeletItemFromOrder_Error()
+        {
+            var service = new OrderService();
+
+            await Assert.ThrowsAsync<Exception>(
+                async () => await service.DeleteItemFromOrder(1, 1, 1)
+                );
+
+        }
+
     }
 }

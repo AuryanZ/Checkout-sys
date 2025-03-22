@@ -92,4 +92,38 @@ public class OrderController : ControllerBase
         }
     }
 
+    [HttpDelete("item", Name = "RemoveItemFromOrder")]
+    public async Task<IActionResult> RemoveItemFromOrder([FromQuery] string orderId, [FromBody] RemoveItemRequest request)
+    {
+        if (string.IsNullOrEmpty(request.Quantity)
+            || string.IsNullOrEmpty(request.ItemSku)
+            || string.IsNullOrEmpty(orderId))
+        {
+            return BadRequest("No order id or SKu");
+        }
+        try
+        {
+            int _orderId = int.Parse(orderId);
+            int _quantity = int.Parse(request.Quantity);
+            string productId = await _productsService.GetProductIdBySku(request.ItemSku);
+            if (string.IsNullOrEmpty(productId))
+            {
+                return BadRequest("Invalid product Sku");
+            }
+            int _productId = int.Parse(productId);
+            var order = await _orderService.DeleteItemFromOrder(_orderId, _productId, _quantity);
+            if (order == null)
+            {
+                return NotFound("Order not Found");
+            }
+            var result = _mapper.Map<OrderUpdateDto>(order);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex);
+        }
+    }
+
+
 }
