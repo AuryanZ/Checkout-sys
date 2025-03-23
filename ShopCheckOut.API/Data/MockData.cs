@@ -7,54 +7,29 @@ namespace ShopCheckOut.API.Data
         public MockData() { }
 
         private List<ProductsModel> _mockProducts = new List<ProductsModel>
-                    {
-                        new () { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
-                        new () { Id = 2, SKU = "SKU2", Name = "Product2", Brand = "MockBrand", Category = "Category2", Price = 120, PriceUnit = "item" },
-                        new () { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
-                        new () { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
-                        new () { Id = 5, SKU = "SKU5", Name = "Product5", Category = "Category2", Price = 150, PriceUnit = "item" },
-                    };
+        {
+            new () { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
+            new () { Id = 2, SKU = "SKU2", Name = "Product2", Brand = "MockBrand", Category = "Category2", Price = 120, PriceUnit = "item" },
+            new () { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
+            new () { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
+            new () { Id = 5, SKU = "SKU5", Name = "Product5", Category = "Category2", Price = 150, PriceUnit = "item" },
+        };
 
         private List<DiscountsModel> _mockDiscounts = new List<DiscountsModel>
         {
-            new() { Id = 1, Type = "Percentage", Name = "10% Off", IsActive = true, MinQuantity = 2,
-                DiscountTiers = new List<DiscountTiersModel>
-                {
-                    new() { Id = 1, DiscountId = 1, Threshold = 2, Percentage = 90 }
-                }
-            },
-            new() { Id = 2, Type = "Fixed Price", Name = "Special Price", IsActive = true, MinQuantity = 3,
-                DiscountTiers = new List<DiscountTiersModel>
-                {
-                    new() { Id = 2, DiscountId = 2, Threshold = 3, FixedPrice = 9000 }
-                }
-            },
-            new() { Id = 3, Type = "Free Item", Name = "Buy 2 Get 1 Free", IsActive = true, MinQuantity = 2,
-                DiscountTiers = new List<DiscountTiersModel>
-                {
-                    new() { Id = 3, DiscountId = 3, Threshold = 3, FreeItem = 1 }
-                }
-            },
-             new() { Id = 4, Type = "Free Item", Name = "Buy 1 Get 1 Free", IsActive = false, MinQuantity = 1,
-                DiscountTiers = new List<DiscountTiersModel>
-                {
-                    new() { Id = 4, DiscountId = 4, Threshold = 2, FreeItem = 1 }
-                }
-            },
-              new() { Id = 5, Type = "Fixed Price", Name = "Special Price", IsActive = true, MinQuantity = 2,
-                DiscountTiers = new List<DiscountTiersModel>
-                {
-                    new() { Id = 5, DiscountId = 5, Threshold = 2, FixedPrice = 80 }
-                }
-            },
+            new PercentageDiscount { Id = 1, Name = "10% Off", IsActive = true, Percentage = 10, minQuantity = 2 },
+            new FixedPriceDiscount { Id = 2, Name = "Fixed $100", IsActive = true, FixedPrice = 100, minQuantity = 1 },
+            new BuyXGetYDiscount { Id = 3, Name = "Buy 2 Get 1 Free", IsActive = true, BuyQuantity = 2, FreeItem = 1 },
+            new PercentageDiscount { Id = 4, Name = "20% Off", IsActive = true, Percentage = 20, minQuantity = 3 },
+            new BuyXGetYDiscount { Id = 5, Name = "Buy 1 Get 1 Free", IsActive = true, BuyQuantity = 1, FreeItem = 1 },
+            new PercentageDiscount { Id = 6, Name = "Inactive Discount", IsActive = false, Percentage = 10, minQuantity = 1  },
         };
-
         private List<ProductDiscountModel> _mockProductDiscounts = new List<ProductDiscountModel>
         {
             new() { ProductId = 1, DiscountId = 1 },
             new() { ProductId = 2, DiscountId = 2 },
             new() { ProductId = 3, DiscountId = 3 },
-            new() { ProductId = 3, DiscountId = 5 }
+            new() { ProductId = 4, DiscountId = 5 }
         };
 
         private List<OrdersModel> _mockOrders;

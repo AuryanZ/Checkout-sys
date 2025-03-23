@@ -3,11 +3,6 @@
 Project introduction:
 http://codekata.com/kata/kata09-back-to-the-checkout/ 
 
-## Data Design
-![Data Design](https://github.com/AuryanZ/Checkout-sys/blob/feature/core-funcs/Imgs/ERD.png)
-
-## Basic Workflow
-![Basic Workflow](https://github.com/AuryanZ/Checkout-sys/blob/feature/core-funcs/Imgs/WorkFlow.png)
 
 ## Work Roadmap
 1. Complete the core functions

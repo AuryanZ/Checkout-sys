@@ -74,88 +74,42 @@ namespace ShopCheckOut.API.Data.Discounts
             return Task.FromResult(result);
         }
 
-        public Task<(int priceAfterDiscount, DiscountsModel? highesDiscount)> PriceAfterDiscount(ProductsModel product, int quantity)
+        public Task<(int priceAfterDiscount, int totalSaved, DiscountsModel? highesDiscount)> PriceAfterDiscount(ProductsModel product, int quantity)
         {
-            var productDiscounts = _mockProductDiscounts.Where(pd => pd.ProductId == product.Id).ToList();
+            // Find all discounts applicable to the product
+            var productDiscounts = _mockProductDiscounts
+                .Where(pd => pd.ProductId == product.Id)
+                .ToList();
+
+            // If no discounts, return the original price
             if (!productDiscounts.Any())
             {
-                return Task.FromResult((product.Price, (DiscountsModel)null));
+                return Task.FromResult((product.Price * quantity, 0, (DiscountsModel?)null));
             }
+
+            // Get all active discounts for the product
             var discounts = _mockDiscounts
-                            .Where(d => productDiscounts.Any(pd => pd.DiscountId == d.Id) && d.IsActive)
-                            .ToList();
-            var priceAfterDiscount = product.Price;
+                .Where(d => productDiscounts.Any(pd => pd.DiscountId == d.Id) && d.IsActive)
+                .ToList();
 
-            // if multiple discounts are available, apply the one with the highest discount
+            // Calculate the lowest price and the corresponding discount
+            var originalPrice = product.Price * quantity;
+            var lowestPrice = originalPrice;
             DiscountsModel? highestDiscount = null;
-            var lowestPrice = product.Price * quantity;
+            int totalSaved = 0;
 
-            // Check all possible discounts and apply the one with the lowest price
-            if (discounts.Count >= 1)
+            foreach (var discount in discounts)
             {
-                foreach (var discount in discounts)
+                var discountedPrice = discount.ApplyDiscount(product.Price, quantity);
+                if (discountedPrice < lowestPrice)
                 {
-                    if (discount == null || quantity < discount.MinQuantity || discount.DiscountTiers == null)
-                    {
-                        continue;
-                    }
-                    var discountTiers = discount.DiscountTiers
-                        .Where(dt => dt.Threshold <= quantity)
-                        .ToList();
-                    if (!discountTiers.Any())
-                    {
-                        continue;
-                    }
-                    foreach (var tier in discountTiers)
-                    {
-                        switch (discount.Type)
-                        {
-                            case "Percentage":
-                                {
-                                    int discountPrice = (product.Price * quantity) * (tier.Percentage ?? 100) / 100;
-                                    if (discountPrice < lowestPrice)
-                                    {
-                                        lowestPrice = (int)discountPrice;
-                                        highestDiscount = discount;
-                                    }
-                                    break;
-                                }
-                            case "Fixed Price":
-                                {
-                                    int fixedPriceItems = quantity / tier.Threshold;
-                                    int remainingItems = quantity % tier.Threshold;
-                                    int totalFixedPrice = (fixedPriceItems * (tier.FixedPrice ?? product.Price)) + (remainingItems * product.Price);
-
-                                    if (totalFixedPrice < lowestPrice)
-                                    {
-                                        lowestPrice = totalFixedPrice;
-                                        highestDiscount = discount;
-                                    }
-                                    break;
-                                }
-                            case "Free Item":
-                                {
-                                    int freeItems = quantity / tier.Threshold;
-                                    int remainingItemsPrice = (quantity - freeItems) * product.Price;
-
-                                    if (remainingItemsPrice < lowestPrice)
-                                    {
-                                        lowestPrice = remainingItemsPrice;
-                                        highestDiscount = discount;
-                                    }
-                                    break;
-                                }
-                        }
-
-                    }
+                    lowestPrice = discountedPrice;
+                    highestDiscount = discount;
+                    totalSaved = originalPrice - discountedPrice;
                 }
             }
 
-            if (highestDiscount != null)
-            {
-                priceAfterDiscount = lowestPrice;
-            }
-            return Task.FromResult((priceAfterDiscount, highestDiscount));
+            return Task.FromResult((lowestPrice, totalSaved, highestDiscount));
         }
 
     }
