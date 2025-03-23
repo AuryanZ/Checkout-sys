@@ -20,9 +20,10 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
     - [X] Checkout
 
 2. Add Discount feature
-    - [ ] Add Discount
-    - [ ] Delete Discount
-    - [ ] Update Discount
+    - [X] Add Discount
+    - [X] Delete Discount
+    - [X] Update Discount
+    - [x] PriceAfterDiscount
     - [ ] Get Discount by SKU
 
 3. Apply Discount

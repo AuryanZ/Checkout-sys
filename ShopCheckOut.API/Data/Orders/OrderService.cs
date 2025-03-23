@@ -127,5 +127,10 @@ namespace ShopCheckOut.API.Data.Orders
             return Task.FromResult(order);
 
         }
+
+        private int GetDiscountedPrice(OrderItems order)
+        {
+            return 0;
+        }
     }
 }

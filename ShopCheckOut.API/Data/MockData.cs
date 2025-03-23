@@ -15,6 +15,48 @@ namespace ShopCheckOut.API.Data
                         new () { Id = 5, SKU = "SKU5", Name = "Product5", Category = "Category2", Price = 150, PriceUnit = "item" },
                     };
 
+        private List<DiscountsModel> _mockDiscounts = new List<DiscountsModel>
+        {
+            new() { Id = 1, Type = "Percentage", Name = "10% Off", IsActive = true, MinQuantity = 2,
+                DiscountTiers = new List<DiscountTiersModel>
+                {
+                    new() { Id = 1, DiscountId = 1, Threshold = 2, Percentage = 90 }
+                }
+            },
+            new() { Id = 2, Type = "Fixed Price", Name = "Special Price", IsActive = true, MinQuantity = 3,
+                DiscountTiers = new List<DiscountTiersModel>
+                {
+                    new() { Id = 2, DiscountId = 2, Threshold = 3, FixedPrice = 9000 }
+                }
+            },
+            new() { Id = 3, Type = "Free Item", Name = "Buy 2 Get 1 Free", IsActive = true, MinQuantity = 2,
+                DiscountTiers = new List<DiscountTiersModel>
+                {
+                    new() { Id = 3, DiscountId = 3, Threshold = 3, FreeItem = 1 }
+                }
+            },
+             new() { Id = 4, Type = "Free Item", Name = "Buy 1 Get 1 Free", IsActive = false, MinQuantity = 1,
+                DiscountTiers = new List<DiscountTiersModel>
+                {
+                    new() { Id = 4, DiscountId = 4, Threshold = 2, FreeItem = 1 }
+                }
+            },
+              new() { Id = 5, Type = "Fixed Price", Name = "Special Price", IsActive = true, MinQuantity = 2,
+                DiscountTiers = new List<DiscountTiersModel>
+                {
+                    new() { Id = 5, DiscountId = 5, Threshold = 2, FixedPrice = 80 }
+                }
+            },
+        };
+
+        private List<ProductDiscountModel> _mockProductDiscounts = new List<ProductDiscountModel>
+        {
+            new() { ProductId = 1, DiscountId = 1 },
+            new() { ProductId = 2, DiscountId = 2 },
+            new() { ProductId = 3, DiscountId = 3 },
+            new() { ProductId = 3, DiscountId = 5 }
+        };
+
         private List<OrdersModel> _mockOrders;
 
         public List<ProductsModel> GetMockProducts()
@@ -22,6 +64,15 @@ namespace ShopCheckOut.API.Data
             return _mockProducts;
         }
 
+        public List<DiscountsModel> GetMockDiscounts()
+        {
+            return _mockDiscounts;
+        }
+
+        public List<ProductDiscountModel> GetMockProductDiscounts()
+        {
+            return _mockProductDiscounts;
+        }
         public List<OrdersModel> GetMockOrders()
         {
             _mockOrders = new List<OrdersModel>

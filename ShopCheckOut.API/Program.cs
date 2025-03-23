@@ -1,3 +1,4 @@
+using ShopCheckOut.API.Data.Discounts;
 using ShopCheckOut.API.Data.Orders;
 using ShopCheckOut.API.Data.Products;
 
@@ -6,6 +7,7 @@ void ConfigureServices(IServiceCollection services)
     services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     services.AddScoped<IProductsService, ProductsService>();
     services.AddScoped<IOrderService, OrderService>();
+    services.AddScoped<IDiscountService, DiscountService>();
 }
 
 var builder = WebApplication.CreateBuilder(args);
