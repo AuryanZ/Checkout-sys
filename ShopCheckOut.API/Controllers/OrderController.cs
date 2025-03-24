@@ -20,13 +20,8 @@ public class OrderController : ControllerBase
         _orderService = orderService;
         _productsService = productsService;
     }
-    [HttpGet(Name = "GetOrderByOrderId")]
-    public async Task<IActionResult> GetOrderByOrderId([FromQuery] string orderId)
-    {
-        return NoContent();
-    }
 
-    [HttpPost(Name = "NewOrder")]
+    [HttpPost("new", Name = "NewOrder")]
     public async Task<ActionResult<OrderCreateDto>> NewOrder([FromQuery] string? CustomerId)
     {
         try
