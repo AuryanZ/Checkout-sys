@@ -17,7 +17,7 @@ public class ProductController : ControllerBase
         _iProductsService = iProductsService;
         _mapper = mapper;
     }
-    [HttpGet("all")]
+    [HttpGet(Name = "Get ALL Products")]
     public async Task<ActionResult<List<ProductReadDto>>> GetProducts()
     {
         try
@@ -30,49 +30,6 @@ public class ProductController : ControllerBase
         {
 
             return BadRequest(new ErrorResponse("Cannot Get Products", ex.Message));
-        }
-    }
-
-    [HttpGet(Name = "GetProductByCategory")]
-    public async Task<ActionResult<List<ProductReadDto>>> GetProductsByCategory([FromQuery] string category)
-    {
-        if (string.IsNullOrEmpty(category))
-        {
-            return BadRequest(new ErrorResponse("Cannot Get Products", "Request category"));
-        }
-        try
-        {
-            var products = await _iProductsService.GetProductsByCategory(category);
-            var result = _mapper.Map<List<ProductReadDto>>(products);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new ErrorResponse($"Cannot Get Products in {category}", ex.Message));
-
-        }
-    }
-
-    [HttpGet("{sku}", Name = "GetProductBySKU")]
-    public async Task<ActionResult<ProductReadDto>> GetProductBySKU(string sku)
-    {
-        if (string.IsNullOrEmpty(sku))
-        {
-            return BadRequest(new ErrorResponse("Cannot Get Products", "Request SKU"));
-        }
-        try
-        {
-            var product = await _iProductsService.GetProductBySKU(sku);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            var result = _mapper.Map<ProductReadDto>(product);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new ErrorResponse($"Cannot Get Products {sku}", ex.Message));
         }
     }
 
@@ -101,4 +58,49 @@ public class ProductController : ControllerBase
             return BadRequest(new ErrorResponse("Product Add not Success", "Requset data missing"));
         }
     }
+
+    [HttpGet("category/{category}", Name = "GetProductByCategory")]
+    public async Task<ActionResult<List<ProductReadDto>>> GetProductsByCategory(string category)
+    {
+        if (string.IsNullOrEmpty(category))
+        {
+            return BadRequest(new ErrorResponse("Cannot Get Products", "Request category"));
+        }
+        try
+        {
+            var products = await _iProductsService.GetProductsByCategory(category);
+            var result = _mapper.Map<List<ProductReadDto>>(products);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ErrorResponse($"Cannot Get Products in {category}", ex.Message));
+
+        }
+    }
+
+    [HttpGet("sku/{sku}", Name = "GetProductBySKU")]
+    public async Task<ActionResult<ProductReadDto>> GetProductBySKU(string sku)
+    {
+        if (string.IsNullOrEmpty(sku))
+        {
+            return BadRequest(new ErrorResponse("Cannot Get Products", "Request SKU"));
+        }
+        try
+        {
+            var product = await _iProductsService.GetProductBySKU(sku);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            var result = _mapper.Map<ProductReadDto>(product);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ErrorResponse($"Cannot Get Products {sku}", ex.Message));
+        }
+    }
+
+
 }
