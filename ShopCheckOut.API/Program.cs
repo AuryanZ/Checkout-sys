@@ -1,11 +1,14 @@
+using ShopCheckOut.API.Data.Discounts;
 using ShopCheckOut.API.Data.Orders;
 using ShopCheckOut.API.Data.Products;
+using System.Text.Json.Serialization;
 
 void ConfigureServices(IServiceCollection services)
 {
     services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     services.AddScoped<IProductsService, ProductsService>();
     services.AddScoped<IOrderService, OrderService>();
+    services.AddScoped<IDiscountService, DiscountService>();
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +17,12 @@ ConfigureServices(builder.Services);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(
+    options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

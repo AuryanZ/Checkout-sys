@@ -3,11 +3,6 @@
 Project introduction:
 http://codekata.com/kata/kata09-back-to-the-checkout/ 
 
-## Data Design
-![Data Design](https://github.com/AuryanZ/Checkout-sys/blob/feature/core-funcs/Imgs/ERD.png)
-
-## Basic Workflow
-![Basic Workflow](https://github.com/AuryanZ/Checkout-sys/blob/feature/core-funcs/Imgs/WorkFlow.png)
 
 ## Work Roadmap
 1. Complete the core functions
@@ -20,12 +15,12 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
     - [X] Checkout
 
 2. Add Discount feature
-    - [ ] Add Discount
-    - [ ] Delete Discount
-    - [ ] Update Discount
-    - [ ] Get Discount by SKU
+    - [X] Add Discount
+    - [X] Delete Discount
+    - [X] Update Discount
+    - [x] PriceAfterDiscount
 
 3. Apply Discount
-    - [ ] Add totalSaved field in Order
-    - [ ] Apply Discount in Checkout
-    - [ ] "Add order item" function should check if the discount is available for the product
+    - [x] Add totalSaved field in Order
+    - [x] "Add order item" function should check if the discount is available for the product
+    - [x] "Delete order item" function should check and remove the discount if the product is removed or the quantity is reduced

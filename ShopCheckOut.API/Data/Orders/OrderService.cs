@@ -1,14 +1,18 @@
-﻿using ShopCheckOut.API.Models;
+﻿using ShopCheckOut.API.Data.Discounts;
+using ShopCheckOut.API.Models;
 
 namespace ShopCheckOut.API.Data.Orders
 {
+
     public class OrderService : IOrderService
     {
         private readonly List<OrdersModel> _mockOrders;
+        private readonly IDiscountService _discountService;
 
-        public OrderService()
+        public OrderService(IDiscountService discountService)
         {
             _mockOrders = new MockData().GetMockOrders();
+            _discountService = discountService;
         }
 
         public Task<OrdersModel> NewOrder(string? customerId)
@@ -32,7 +36,7 @@ namespace ShopCheckOut.API.Data.Orders
             }
         }
 
-        public Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity)
+        public async Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity)
         {
             var order = _mockOrders.FirstOrDefault(o => o.Id == orderId);
             if (order == null)
@@ -43,8 +47,12 @@ namespace ShopCheckOut.API.Data.Orders
             var existingItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == product.Id);
             if (existingItem != null)
             {
+                var originalItemAmount = (existingItem.Product.Price * existingItem.Quantity) - existingItem.Saved;
+                var originalSaved = existingItem.Saved;
                 // If product exists, increase quantity
                 existingItem.Quantity += quantity;
+                order.TotalAmount -= originalItemAmount;
+                order.TotalSaved -= originalSaved;
             }
             else // If product does not exist, add new order item
             {
@@ -58,14 +66,26 @@ namespace ShopCheckOut.API.Data.Orders
                 };
 
                 order.OrderItems.Add(newOrderItem);
+                existingItem = newOrderItem;
             }
-            int _price = product.Price * quantity;
-            order.TotalAmount += _price;
+            try
+            {
+                var priceAfterDisc = await GetDiscountedPrice(existingItem);
+                existingItem.Saved = priceAfterDisc.ItemSaved;
+                existingItem.DiscountName = priceAfterDisc.DiscoutName;
 
-            return Task.FromResult(order);
+                order.TotalAmount += priceAfterDisc.Price;
+                order.TotalSaved += priceAfterDisc.ItemSaved;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
+            return order;
         }
 
-        public Task<OrdersModel> DeleteItemFromOrder(int orderId, int productId, int quantityRemove)
+        public async Task<OrdersModel> DeleteItemFromOrder(int orderId, int productId, int quantityRemove)
         {
             var order = _mockOrders.FirstOrDefault(o => o.Id == orderId) ??
                 throw new Exception($"Order with ID {orderId} not found.");
@@ -83,22 +103,40 @@ namespace ShopCheckOut.API.Data.Orders
             if (quantityRemove > 0)
             {
                 int quantityDiff = orderItem.Quantity - quantityRemove;
-                if (quantityDiff <= 0)
+                if (quantityDiff <= 0) // If quantity to remove is greater than or equal to existing quantity, remove item
                 {
                     order.OrderItems.Remove(orderItem);
-                    order.TotalAmount -= orderItem.Product.Price * orderItem.Quantity;
+                    var originalPrice = orderItem.Product.Price * orderItem.Quantity;
+                    order.TotalAmount -= originalPrice - orderItem.Saved;
+                    order.TotalSaved -= orderItem.Saved;
                 }
                 else
                 {
+                    var originalItemAmount = (orderItem.Product.Price * orderItem.Quantity) - orderItem.Saved;
+                    var originalSaved = orderItem.Saved;
+
                     orderItem.Quantity = quantityDiff;
-                    order.TotalAmount -= orderItem.Product.Price * quantityRemove;
+                    try
+                    {
+                        var priceAfterDisc = await GetDiscountedPrice(orderItem);
+
+                        orderItem.Saved = priceAfterDisc.ItemSaved;
+                        orderItem.DiscountName = priceAfterDisc.DiscoutName;
+
+                        order.TotalAmount -= originalItemAmount - priceAfterDisc.Price;
+                        order.TotalSaved -= originalSaved - priceAfterDisc.ItemSaved;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
                 }
             }
 
-            return Task.FromResult(order);
+            return order;
         }
 
-        public Task<OrdersModel> OrderCheckOut(int orderId)
+        public async Task<OrdersModel> OrderCheckOut(int orderId)
         {
             var order = _mockOrders.FirstOrDefault(o => o.Id == orderId) ??
                 throw new Exception("Invilide Order Id");
@@ -107,25 +145,32 @@ namespace ShopCheckOut.API.Data.Orders
                 throw new Exception("Invilide Order Id");
             }
 
-            //return Task.FromResult(order); // if validation not required
+            return order; // if validation not required
 
-            var orderItems = order.OrderItems;
-            List<OrderItems> tempOrderItem = new List<OrderItems>();
-            var amount = 0;
-            foreach (var item in orderItems)
-            {
-                amount += item.Product.Price * item.Quantity;
-                tempOrderItem.Add(item);
-            }
+            //var orderItems = order.OrderItems;
+            //List<OrderItems> tempOrderItem = new List<OrderItems>();
+            //var amount = 0;
+            //foreach (var item in orderItems)
+            //{
+            //    amount += item.Product.Price * item.Quantity;
+            //    tempOrderItem.Add(item);
+            //}
 
-            if (amount != order.TotalAmount)
-            {
-                order.OrderItems = tempOrderItem;
-                order.TotalAmount = amount;
-            }
+            //if (amount != order.TotalAmount)
+            //{
+            //    order.OrderItems = tempOrderItem;
+            //    order.TotalAmount = amount;
+            //}
 
-            return Task.FromResult(order);
+            //return order;
+        }
 
+        private async Task<PriceAfterDiscountReturn> GetDiscountedPrice(OrderItems order)
+        {
+            ProductsModel productsModel = order.Product;
+            int quantity = order.Quantity;
+            var productAfterDiscout = await _discountService.PriceAfterDiscount(productsModel, quantity);
+            return productAfterDiscout;
         }
     }
 }
