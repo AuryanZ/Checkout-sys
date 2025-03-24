@@ -19,7 +19,7 @@ namespace ShopCheckOut.UnitTest.Data
             Assert.Equal(3, result.Count);
             Assert.All<ProductsModel>(result, p => Assert.Equal("Category1", p.Category));
 
-            Assert.Equal(2, result2.Count);
+            Assert.Equal(3, result2.Count);
             Assert.All<ProductsModel>(result2, p => Assert.Equal("Category2", p.Category));
         }
 
@@ -44,7 +44,7 @@ namespace ShopCheckOut.UnitTest.Data
             // Act
             var result = await service.GetProducts();
             // Assert
-            Assert.Equal(5, result.Count);
+            Assert.Equal(6, result.Count);
         }
 
         [Fact]

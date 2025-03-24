@@ -139,10 +139,13 @@ namespace ShopCheckOut.UnitTest.Controllers
                         new OrderItems {
                             OrderId = orderId,
                             Product = product,
-                            Quantity = quantity
+                            Quantity = quantity,
+                            Saved = 20,
+                            DiscountName = "10% Off"
                         }
                     },
-                    TotalAmount = product.Price * quantity
+                    TotalAmount = product.Price * quantity,
+                    TotalSaved = 20,
                 };
                 return existingOrder;
             });
@@ -264,5 +267,8 @@ namespace ShopCheckOut.UnitTest.Controllers
             Assert.Equal(1, items.Id);
             Assert.Equal(80.0m, items.TotalAmount);
         }
+
+
+
     }
 }

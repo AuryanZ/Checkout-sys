@@ -13,6 +13,8 @@ namespace ShopCheckOut.API.Models
         [ForeignKey("ProductId")]
         public int ProductId { get; set; }
         public int Quantity { get; set; }
+        public int Saved { get; set; }
+        public string? DiscountName { get; set; }
         public ProductsModel Product { get; set; }
     }
 }

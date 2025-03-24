@@ -17,7 +17,7 @@ namespace ShopCheckOut.UnitTest.Data
             var activeDiscounts = await _discountService.GetAvailableDiscounts(); // Await the task
                                                                                   // Assert
             Assert.NotNull(activeDiscounts);
-            Assert.Equal(4, activeDiscounts.Count);
+            Assert.Equal(7, activeDiscounts.Count);
         }
 
         [Fact]
@@ -70,7 +70,7 @@ namespace ShopCheckOut.UnitTest.Data
 
             var activeDiscounts = await _discountService.GetAvailableDiscounts();
             Assert.NotNull(activeDiscounts);
-            Assert.Equal(5, activeDiscounts.Count);
+            Assert.Equal(8, activeDiscounts.Count);
 
             var deleteResult = await _discountService.DeleteDiscount(1);
             Assert.NotNull(deleteResult);
@@ -78,7 +78,7 @@ namespace ShopCheckOut.UnitTest.Data
 
             activeDiscounts = await _discountService.GetAvailableDiscounts();
             Assert.NotNull(activeDiscounts);
-            Assert.Equal(4, activeDiscounts.Count);
+            Assert.Equal(7, activeDiscounts.Count);
         }
 
         [Fact]
@@ -98,8 +98,8 @@ namespace ShopCheckOut.UnitTest.Data
             // Act
             var priceAfterDiscount = await _discountService.PriceAfterDiscount(product, quantity);
             // Assert
-            Assert.Equal(100, priceAfterDiscount.priceAfterDiscount);
-            Assert.Null(priceAfterDiscount.highesDiscount);
+            Assert.Equal(100, priceAfterDiscount.Price);
+            Assert.Null(priceAfterDiscount.DiscoutName);
         }
 
         [Fact]
@@ -120,8 +120,32 @@ namespace ShopCheckOut.UnitTest.Data
             var priceAfterDiscount = await _discountService.PriceAfterDiscount(product, quantity);
             // Assert
             Assert.NotNull(priceAfterDiscount);
-            Assert.Equal(180, priceAfterDiscount.priceAfterDiscount);
-            Assert.Equal("10% Off", priceAfterDiscount.highesDiscount.Name);
+            Assert.Equal(180, priceAfterDiscount.Price);
+            Assert.Equal("10% Off", priceAfterDiscount.DiscoutName);
+            Assert.Equal(20, priceAfterDiscount.ItemSaved);
+        }
+
+        [Fact]
+        public async Task TestPriceAfterDiscout_WhenTireDiscoutApplied()
+        {
+            // Arrange
+            var product = new ProductsModel
+            {
+                Id = 6,
+                SKU = "SKU6",
+                Name = "Product6",
+                Category = "Category2",
+                Price = 10,
+                PriceUnit = "item"
+            };
+            var quantity = 25;
+            // Act
+            var priceAfterDiscount = await _discountService.PriceAfterDiscount(product, quantity);
+            // Assert
+            Assert.NotNull(priceAfterDiscount);
+            Assert.Equal(180, priceAfterDiscount.Price);
+            Assert.Equal("Buy 5 Get 2 Free; Buy 3 Get 1 Free; ", priceAfterDiscount.DiscoutName);
+            Assert.Equal(70, priceAfterDiscount.ItemSaved);
         }
 
     }

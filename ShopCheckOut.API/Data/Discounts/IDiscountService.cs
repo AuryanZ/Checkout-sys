@@ -7,5 +7,6 @@ namespace ShopCheckOut.API.Data.Discounts
         Task<List<ProductDiscountModel>> GetAvailableDiscounts();
         Task<bool> AddNewDiscout(DiscountsModel discount, int productId);
         Task<bool> DeleteDiscount(int discountId);
+        Task<PriceAfterDiscountReturn> PriceAfterDiscount(ProductsModel product, int quantity);
     }
 }

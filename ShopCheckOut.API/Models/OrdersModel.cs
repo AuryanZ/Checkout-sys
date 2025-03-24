@@ -12,5 +12,6 @@ namespace ShopCheckOut.API.Models
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public virtual List<OrderItems> OrderItems { get; set; }
         public int TotalAmount { get; set; }
+        public int TotalSaved { get; set; }
     }
 }
