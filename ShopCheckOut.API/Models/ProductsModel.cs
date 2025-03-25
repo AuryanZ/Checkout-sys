@@ -9,7 +9,7 @@ namespace ShopCheckOut.API.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [Required]
-        public string SKU { get; set; }
+        public string Sku { get; set; }
         [Required]
         public string Name { get; set; }
         public string Brand { get; set; }

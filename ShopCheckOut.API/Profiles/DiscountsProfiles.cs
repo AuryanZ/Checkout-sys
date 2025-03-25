@@ -9,7 +9,7 @@ namespace ShopCheckOut.API.Profiles
         public DiscountsProfiles()
         {
             CreateMap<AddDiscountRequest, DiscountsModel>()
-                .ForMember(dest => dest.minQuantity, opt => opt.MapFrom(src => src.minQuantity))
+                .ForMember(dest => dest.MinQuantity, opt => opt.MapFrom(src => src.MinQuantity))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
                 .IncludeAllDerived();
