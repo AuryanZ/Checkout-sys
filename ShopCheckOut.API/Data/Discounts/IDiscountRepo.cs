@@ -2,11 +2,11 @@
 
 namespace ShopCheckOut.API.Data.Discounts
 {
-    public interface IDiscountService
+    public interface IDiscountRepo
     {
         Task<List<ProductDiscountModel>> GetAvailableDiscounts();
-        Task<bool> AddNewDiscout(DiscountsModel discount, int productId);
-        Task<bool> DeleteDiscount(int discountId);
+        Task AddNewDiscout(DiscountsModel discount, int productId);
+        Task DeleteDiscount(int discountId);
         Task<PriceAfterDiscountReturn> PriceAfterDiscount(ProductsModel product, int quantity);
     }
 }

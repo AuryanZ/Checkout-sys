@@ -12,9 +12,9 @@ namespace ShopCheckOut.API.Dtos.Discounts
     public class AddDiscountRequest
     {
         public required string Name { get; set; }
-        public required string productSKU { get; set; }
+        public required string ProductSKU { get; set; }
         public required bool IsActive { get; set; }
-        public required int minQuantity { get; set; }
+        public required int MinQuantity { get; set; }
 
         public required DiscountTypes DiscountType { get; set; }
 

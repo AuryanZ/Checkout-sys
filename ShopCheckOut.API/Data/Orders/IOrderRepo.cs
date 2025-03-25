@@ -1,7 +1,7 @@
 ﻿using ShopCheckOut.API.Models;
 namespace ShopCheckOut.API.Data.Orders
 {
-    public interface IOrderService
+    public interface IOrderRepo
     {
         Task<OrdersModel> NewOrder(string? customerId);
 

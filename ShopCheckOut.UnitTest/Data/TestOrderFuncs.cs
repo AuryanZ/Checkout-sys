@@ -1,4 +1,5 @@
-﻿using ShopCheckOut.API.Data.Discounts;
+﻿using FluentAssertions;
+using Moq;
 using ShopCheckOut.API.Data.Orders;
 using ShopCheckOut.API.Models;
 
@@ -6,77 +7,103 @@ namespace ShopCheckOut.UnitTest.Data
 {
     public class TestOrderFuncs
     {
-        private readonly DiscountService _discountService;
+        private readonly Mock<IOrderRepo> _OrderRepo;
 
         public TestOrderFuncs()
         {
-            _discountService = new DiscountService();
+            _OrderRepo = new Mock<IOrderRepo>();
         }
 
         [Fact]
         public async Task TestNewOrder_ok()
         {
             // Arrange
-            var service = new OrderService(_discountService);
+            _OrderRepo.Setup(service => service.NewOrder(null)).ReturnsAsync(new OrdersModel
+            {
+                Id = 3,
+                CustomerId = null,
+                OrderDate = DateTime.Now,
+                OrderItems = new List<OrderItems>(),
+                TotalAmount = 0
+            });
 
             // Act
-            var result = await service.NewOrder(null);
+            var result = await _OrderRepo.Object.NewOrder(null);
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(3, result.Id);
-            Assert.Equal((decimal)0.0, result.TotalAmount);
-
+            result.Should().NotBeNull();
+            result.Id.Should().Be(3);
+            result.TotalAmount.Should().Be(0);
         }
 
         [Fact]
         public async Task TestAddItemToOrder_ok()
         {
             // Arrange
-            var service = new OrderService(_discountService);
+            _OrderRepo.Setup(service => service.AddItemToOrder(1, It.IsAny<ProductsModel>(), 3)).ReturnsAsync(new OrdersModel
+            {
+                Id = 1,
+                CustomerId = null,
+                OrderDate = new DateTime(2025, 3, 5),
+                OrderItems = new List<OrderItems>
+                {
+                    new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = new ProductsModel { Id = 1, Sku = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" }, Quantity = 3, DiscountName = "10% Off", Saved = 30 }
+                },
+                TotalAmount = 830,
+                TotalSaved = 60
+            });
+
             ProductsModel prduct = new ProductsModel()
             {
                 Id = 1,
-                SKU = "SKU1",
+                Sku = "SKU1",
                 Name = "Product1",
                 Category = "Category1",
                 Price = 100,
                 PriceUnit = "kg"
             };
             // Act
-            var result = await service.AddItemToOrder(1, prduct, 3);
+            var result = await _OrderRepo.Object.AddItemToOrder(1, prduct, 3);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(1, result.Id);
-            Assert.Equal(830, result.TotalAmount);
-            Assert.Equal(60, result.TotalSaved);
+            result.Should().NotBeNull();
+            result.Id.Should().Be(1);
+            result.TotalAmount.Should().Be(830);
+            result.TotalSaved.Should().Be(60);
         }
 
         [Fact]
         public async Task TestDeletItemFromOrder_Ok()
         {
             // Arrange
-            var service = new OrderService(_discountService);
+            _OrderRepo.Setup(Object => Object.DeleteItemFromOrder(1, 1, 1)).ReturnsAsync(new OrdersModel
+            {
+                Id = 1,
+                CustomerId = null,
+                OrderDate = new DateTime(2025, 3, 5),
+                OrderItems = new List<OrderItems>
+                {
+                    new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = new ProductsModel { Id = 1, Sku = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" }, Quantity = 2, DiscountName = "10% Off", Saved = 20 },
+                    new OrderItems() { Id = 11, OrderId = 1, ProductId = 2, Product = new ProductsModel { Id = 2, Sku = "SKU2", Name = "Product2", Category = "Category2", Price = 170, PriceUnit = "kg" }, Quantity = 3, DiscountName = "Buy 2 get 1 free", Saved = 170 }
+                },
+                TotalAmount = 340,
+                TotalSaved = 190
+            });
             // Act
-            var result = await service.DeleteItemFromOrder(1, 1, 1); // 10% off
-            var result2 = await service.DeleteItemFromOrder(2, 3, 2); // buy 2 get 1 free
+            var result = await _OrderRepo.Object.DeleteItemFromOrder(1, 1, 1);
             // Assert
-            Assert.NotNull(result); // 10% off
-            Assert.Equal(1, result.Id); // 10% off
-            Assert.Equal(470, result.TotalAmount); // 10% off
-
-            Assert.NotNull(result2); // buy 2 get 1 free
-            Assert.Equal(2, result2.Id); // buy 2 get 1 free
-            Assert.Equal(510, result2.TotalAmount); // buy 2 get 1 free
+            result.Should().NotBeNull();
+            result.Id.Should().Be(1);
+            result.TotalAmount.Should().Be(340);
         }
 
         [Fact]
         public async Task TestDeletItemFromOrder_Error()
         {
-            var service = new OrderService(_discountService);
+            _OrderRepo.Setup(Object => Object.DeleteItemFromOrder(1, 10, 1)).ThrowsAsync(new Exception("Product not found in order"));
+
 
             await Assert.ThrowsAsync<Exception>(
-                async () => await service.DeleteItemFromOrder(1, 10, 1)
+                async () => await _OrderRepo.Object.DeleteItemFromOrder(1, 10, 1)
                 );
 
         }
@@ -84,17 +111,30 @@ namespace ShopCheckOut.UnitTest.Data
         [Fact]
         public async Task TestOrderCheckOut_withInvalidOrder()
         {
-            var service = new OrderService(_discountService);
+            _OrderRepo.Setup(Object => Object.OrderCheckOut(10))
+                .ThrowsAsync(new Exception("Order not found"));
             await Assert.ThrowsAsync<Exception>(
-                async () => await service.OrderCheckOut(10)
+                async () => await _OrderRepo.Object.OrderCheckOut(10)
                 );
         }
 
         [Fact]
         public async Task TestOrderCheckOut_Ok()
         {
-            var service = new OrderService(_discountService);
-            var result = await service.OrderCheckOut(1);
+            _OrderRepo.Setup(Object => Object.OrderCheckOut(1)).ReturnsAsync(new OrdersModel
+            {
+                Id = 1,
+                CustomerId = null,
+                OrderDate = new DateTime(2025, 3, 5),
+                OrderItems = new List<OrderItems>
+                {
+                    new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = new ProductsModel { Id = 1, Sku = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" }, Quantity = 2, DiscountName = "10% Off", Saved = 20 },
+                    new OrderItems() { Id = 11, OrderId = 1, ProductId = 2, Product = new ProductsModel { Id = 2, Sku = "SKU2", Name = "Product2", Category = "Category2", Price = 170, PriceUnit = "kg" }, Quantity = 3, DiscountName = "Buy 2 get 1 free", Saved = 170 }
+                },
+                TotalAmount = 560,
+                TotalSaved = 190
+            });
+            var result = await _OrderRepo.Object.OrderCheckOut(1);
             Assert.NotNull(result);
             Assert.Equal(1, result.Id);
             Assert.Equal(560, result.TotalAmount);

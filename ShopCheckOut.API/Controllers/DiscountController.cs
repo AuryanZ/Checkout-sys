@@ -11,13 +11,13 @@ namespace ShopCheckOut.API.Controllers
     [Route("[controller]")]
     public class DiscountController : ControllerBase
     {
-        private readonly IDiscountService _discountService;
-        private readonly IProductsService _productsService;
+        private readonly IDiscountRepo _discountRepo;
+        private readonly IProductsRepo _productsRepo;
         private readonly IMapper _mapper;
-        public DiscountController(IDiscountService discountService, IProductsService productsService, IMapper mapper)
+        public DiscountController(IDiscountRepo discountService, IProductsRepo productsService, IMapper mapper)
         {
-            _discountService = discountService;
-            _productsService = productsService;
+            _discountRepo = discountService;
+            _productsRepo = productsService;
             _mapper = mapper;
         }
 
@@ -26,7 +26,7 @@ namespace ShopCheckOut.API.Controllers
         {
             try
             {
-                var discounts = await _discountService.GetAvailableDiscounts();
+                var discounts = await _discountRepo.GetAvailableDiscounts();
                 return Ok(discounts);
             }
             catch (Exception ex)
@@ -45,15 +45,12 @@ namespace ShopCheckOut.API.Controllers
                 {
                     return BadRequest(new ErrorResponse("Discount Type Not Found", "Request data missing"));
                 }
-                var productId = await _productsService.GetProductIdBySku(request.productSKU);
+                var productId = await _productsRepo.GetProductIdBySku(request.ProductSKU);
                 int _productId = int.Parse(productId);
                 var discount = (DiscountsModel)_mapper.Map(request, request.GetType(), discoutType);
-                var result = await _discountService.AddNewDiscout(discount, _productId);
-                if (result)
-                {
-                    return Ok(result);
-                }
-                return BadRequest(new ErrorResponse("Discount Add not Success", "Serviec return null"));
+
+                await _discountRepo.AddNewDiscout(discount, _productId);
+                return Ok(new { Message = "Discount added successfully" });
             }
             catch (Exception ex)
             {
@@ -66,12 +63,8 @@ namespace ShopCheckOut.API.Controllers
         {
             try
             {
-                var result = await _discountService.DeleteDiscount(discountId);
-                if (result)
-                {
-                    return Ok(result);
-                }
-                return BadRequest(new ErrorResponse("Discount Delete not Success", "Serviec return null"));
+                await _discountRepo.DeleteDiscount(discountId);
+                return Ok(new { message = $"Deleted discount {discountId}" });
             }
             catch (Exception ex)
             {

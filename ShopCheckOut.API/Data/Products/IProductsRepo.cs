@@ -2,14 +2,14 @@
 
 namespace ShopCheckOut.API.Data.Products
 {
-    public interface IProductsService
+    public interface IProductsRepo
     {
         Task<List<ProductsModel>> GetProducts();
         Task<List<ProductsModel>> GetProductsByCategory(string category);
         Task<ProductsModel> GetProductBySKU(string sku);
 
         Task<string> GetProductIdBySku(string sku);
-        Task<bool> AddProduct(ProductsModel product);
+        Task AddProduct(ProductsModel product);
 
     }
 }

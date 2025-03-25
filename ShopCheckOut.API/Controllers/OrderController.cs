@@ -12,13 +12,13 @@ namespace ShopCheckOut.API.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly IMapper _mapper;
-    private readonly IOrderService _orderService;
-    private readonly IProductsService _productsService;
-    public OrderController(IMapper mapper, IOrderService orderService, IProductsService productsService)
+    private readonly IOrderRepo _orderRepo;
+    private readonly IProductsRepo _productsRepo;
+    public OrderController(IMapper mapper, IOrderRepo orderService, IProductsRepo productsService)
     {
         _mapper = mapper;
-        _orderService = orderService;
-        _productsService = productsService;
+        _orderRepo = orderService;
+        _productsRepo = productsService;
     }
 
     [HttpPost("new", Name = "NewOrder")]
@@ -26,7 +26,7 @@ public class OrderController : ControllerBase
     {
         try
         {
-            var newOrder = await _orderService.NewOrder(CustomerId);
+            var newOrder = await _orderRepo.NewOrder(CustomerId);
             var result = _mapper.Map<OrderCreateDto>(newOrder);
 
             if (result != null)
@@ -56,12 +56,12 @@ public class OrderController : ControllerBase
             _orderId = int.Parse(orderId);
             _quantity = int.Parse(request.Quantity);
 
-            ProductsModel product = await _productsService.GetProductBySKU(request.ItemSKU);
+            ProductsModel product = await _productsRepo.GetProductBySKU(request.ItemSKU);
             if (product == null)
             {
                 return NotFound();
             }
-            var order = await _orderService.AddItemToOrder(_orderId, product, _quantity);
+            var order = await _orderRepo.AddItemToOrder(_orderId, product, _quantity);
             if (order == null)
             {
                 return BadRequest(new ErrorResponse($"Cannot add item to {orderId}", "Order not Found"));
@@ -89,14 +89,14 @@ public class OrderController : ControllerBase
         {
             int _orderId = int.Parse(orderId);
             int _quantity = int.Parse(request.Quantity);
-            string productId = await _productsService.GetProductIdBySku(request.ItemSku);
+            string productId = await _productsRepo.GetProductIdBySku(request.ItemSku);
             if (string.IsNullOrEmpty(productId))
             {
                 return BadRequest(new ErrorResponse($"Connot find product {request.ItemSku}", "Invalid product Sku"));
 
             }
             int _productId = int.Parse(productId);
-            var order = await _orderService.DeleteItemFromOrder(_orderId, _productId, _quantity);
+            var order = await _orderRepo.DeleteItemFromOrder(_orderId, _productId, _quantity);
             if (order == null)
             {
                 return NotFound("Order not Found");
@@ -122,7 +122,7 @@ public class OrderController : ControllerBase
         try
         {
             int _orderId = int.Parse(orderId);
-            var order = await _orderService.OrderCheckOut(_orderId);
+            var order = await _orderRepo.OrderCheckOut(_orderId);
             if (order == null)
             {
                 return NotFound("Order not Found");

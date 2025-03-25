@@ -10,11 +10,11 @@ namespace ShopCheckOut.UnitTest.Controllers
 {
     public class TestProductControllers
     {
-        private Mock<IProductsService> _mockProductsService;
+        private Mock<IProductsRepo> _mockProductsRepo;
         private IMapper _mockMapper;
         public TestProductControllers()
         {
-            _mockProductsService = new Mock<IProductsService>();
+            _mockProductsRepo = new Mock<IProductsRepo>();
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.
@@ -30,14 +30,14 @@ namespace ShopCheckOut.UnitTest.Controllers
         public async Task GetProductsByCategory_Ok()
         {
             // Arrange
-            _mockProductsService.Setup(service => service.GetProductsByCategory("Category1"))
+            _mockProductsRepo.Setup(service => service.GetProductsByCategory("Category1"))
                 .ReturnsAsync(new List<ProductsModel>
                 {
-                        new() { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
-                        new() { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
-                        new() { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
+                        new() { Id = 1, Sku = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
+                        new() { Id = 3, Sku = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
+                        new() { Id = 4, Sku = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
                 });
-            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsRepo.Object, _mockMapper);
 
             // Act
             var result = (await sut.GetProductsByCategory("Category1")).Result as OkObjectResult;
@@ -49,9 +49,9 @@ namespace ShopCheckOut.UnitTest.Controllers
             products.Should().OnlyContain(p => p.Category == "Category1");
             products.Should().BeEquivalentTo(
                 new List<ProductReadDto> {
-                new() { SKU = "SKU1", Name = "Product1", Category = "Category1", PriceInfo = "100 per kg" },
-                new() {  SKU = "SKU3", Name = "Product3",Brand = "Foo", Category = "Category1", PriceInfo = "130 per g"},
-                new() {  SKU = "SKU4", Name = "Product4", Category = "Category1", PriceInfo = "140 per kg" }
+                new() { Sku = "SKU1", Name = "Product1", Category = "Category1", PriceInfo = "100 per kg" },
+                new() {  Sku = "SKU3", Name = "Product3",Brand = "Foo", Category = "Category1", PriceInfo = "130 per g"},
+                new() {  Sku = "SKU4", Name = "Product4", Category = "Category1", PriceInfo = "140 per kg" }
                 });
         }
 
@@ -59,27 +59,27 @@ namespace ShopCheckOut.UnitTest.Controllers
         public async Task GetProductsByCategory_BadRequest()
         {
             // Arrange
-            _mockProductsService.Setup(service => service.GetProductsByCategory(It.IsAny<string>()))
+            _mockProductsRepo.Setup(service => service.GetProductsByCategory(It.IsAny<string>()))
                 .ReturnsAsync((List<ProductsModel>)null);
 
-            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsRepo.Object, _mockMapper);
             // Act
             var result = (await sut.GetProductsByCategory("")).Result as BadRequestObjectResult;
             // Assert
             result.StatusCode.Should().Be(400);
-            Assert.Equivalent(new ErrorResponse("Cannot Get Products", "Request category"), result.Value);
+            result.Value.Should().BeEquivalentTo(new ErrorResponse("Cannot Get Products", "Request category"));
         }
 
         [Fact]
         public async Task GetProductBySKU_OKAsync()
         {
             // Arrange
-            _mockProductsService.Setup(service => service.GetProductBySKU("SKU1"))
-                .ReturnsAsync(new ProductsModel { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" });
-            _mockProductsService.Setup(service => service.GetProductBySKU("SKU3"))
-                .ReturnsAsync(new ProductsModel { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" });
+            _mockProductsRepo.Setup(service => service.GetProductBySKU("SKU1"))
+                .ReturnsAsync(new ProductsModel { Id = 1, Sku = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" });
+            _mockProductsRepo.Setup(service => service.GetProductBySKU("SKU3"))
+                .ReturnsAsync(new ProductsModel { Id = 3, Sku = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" });
 
-            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsRepo.Object, _mockMapper);
 
             // Act
             var result = (await sut.GetProductBySKU("SKU1")).Result as OkObjectResult;
@@ -99,37 +99,37 @@ namespace ShopCheckOut.UnitTest.Controllers
         public async Task GetProductBySKU_BadRequest()
         {
             // Arrange
-            _mockProductsService.Setup(service => service.GetProductBySKU(It.IsAny<string>()))
+            _mockProductsRepo.Setup(service => service.GetProductBySKU(It.IsAny<string>()))
                 .ReturnsAsync((ProductsModel?)null);
-            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsRepo.Object, _mockMapper);
             // Act
             var result = (await sut.GetProductBySKU("")).Result as BadRequestObjectResult;
             // Assert
             result.StatusCode.Should().Be(400);
-            Assert.Equivalent(new ErrorResponse("Cannot Get Products", "Request SKU"), result.Value);
+            result.Value.Should().BeEquivalentTo(new ErrorResponse("Cannot Get Products", "Request SKU"));
         }
 
         [Fact]
         public async Task TestAddProduct_OK()
         {
             // Arrange
-            var newProduct = new ProductCreateDto { SKU = "SKU6", Name = "Product6", Category = "Category3", Price = 60.0m, PriceUnit = "item" };
+            var newProduct = new ProductCreateDto { Sku = "SKU6", Name = "Product6", Category = "Category3", Price = 60.0m, PriceUnit = "item" };
             var productsList = new List<ProductsModel>
             {
-                new () { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
-                new () { Id = 2, SKU = "SKU2", Name = "Product2", Brand = "MockBrand", Category = "Category2", Price = 120, PriceUnit = "item" },
-                new () { Id = 3, SKU = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
-                new () { Id = 4, SKU = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
-                new () { Id = 5, SKU = "SKU5", Name = "Product5", Category = "Category2", Price = 150, PriceUnit = "item" },
+                new () { Id = 1, Sku = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" },
+                new () { Id = 2, Sku = "SKU2", Name = "Product2", Brand = "MockBrand", Category = "Category2", Price = 120, PriceUnit = "item" },
+                new () { Id = 3, Sku = "SKU3", Name = "Product3", Brand = "Foo", Category = "Category1", Price = 130, PriceUnit = "g" },
+                new () { Id = 4, Sku = "SKU4", Name = "Product4", Category = "Category1", Price = 140, PriceUnit = "kg" },
+                new () { Id = 5, Sku = "SKU5", Name = "Product5", Category = "Category2", Price = 150, PriceUnit = "item" },
             };
 
-            _mockProductsService.Setup(service => service.AddProduct(It.IsAny<ProductsModel>()))
-                .ReturnsAsync(true)
+            _mockProductsRepo.Setup(repo => repo.AddProduct(It.IsAny<ProductsModel>()))
+                .Returns(Task.CompletedTask)
                 .Callback<ProductsModel>(product => productsList.Add(product));
-            _mockProductsService.Setup(service => service.GetProducts())
+            _mockProductsRepo.Setup(repo => repo.GetProducts())
                 .ReturnsAsync(productsList);
 
-            var sut = new ProductController(_mockProductsService.Object, _mockMapper);
+            var sut = new ProductController(_mockProductsRepo.Object, _mockMapper);
             // Act
             var addResult = await sut.AddProduct(newProduct) as OkObjectResult;
             // Assert
@@ -139,7 +139,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             // Assert
             getResult.StatusCode.Should().Be(200);
             var retrievedProducts = getResult.Value as List<ProductReadDto>;
-            retrievedProducts.Should().Contain(p => p.SKU == newProduct.SKU && p.Name == newProduct.Name);
+            retrievedProducts.Should().Contain(p => p.Sku == newProduct.Sku && p.Name == newProduct.Name);
         }
 
     }

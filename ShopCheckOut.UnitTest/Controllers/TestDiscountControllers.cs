@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using ShopCheckOut.API.Controllers;
@@ -11,17 +12,17 @@ namespace ShopCheckOut.UnitTest.Controllers
 {
     public class TestDiscountControllers
     {
-        private readonly Mock<IDiscountService> _mockDiscountService;
-        private readonly Mock<IProductsService> _mockProductsService;
+        private readonly Mock<IDiscountRepo> _mockDiscountRepo;
+        private readonly Mock<IProductsRepo> _mockProductsRepo;
         private readonly Mock<IMapper> _mockMapper;
         private readonly DiscountController _controller;
 
         public TestDiscountControllers()
         {
-            _mockDiscountService = new Mock<IDiscountService>();
-            _mockProductsService = new Mock<IProductsService>();
+            _mockDiscountRepo = new Mock<IDiscountRepo>();
+            _mockProductsRepo = new Mock<IProductsRepo>();
             _mockMapper = new Mock<IMapper>();
-            _controller = new DiscountController(_mockDiscountService.Object, _mockProductsService.Object, _mockMapper.Object);
+            _controller = new DiscountController(_mockDiscountRepo.Object, _mockProductsRepo.Object, _mockMapper.Object);
         }
 
         [Fact]
@@ -33,7 +34,7 @@ namespace ShopCheckOut.UnitTest.Controllers
                     new ProductDiscountModel { ProductId = 1, DiscountId = 1 },
                     new ProductDiscountModel { ProductId = 2, DiscountId = 2 }
                 };
-            _mockDiscountService.Setup(service => service.GetAvailableDiscounts()).ReturnsAsync(discounts);
+            _mockDiscountRepo.Setup(service => service.GetAvailableDiscounts()).ReturnsAsync(discounts);
 
             // Act
             var result = (await _controller.GetDiscounts()).Result;
@@ -48,7 +49,7 @@ namespace ShopCheckOut.UnitTest.Controllers
         public async Task GetDiscounts_ReturnsBadRequest_WhenExceptionThrown()
         {
             // Arrange
-            _mockDiscountService.Setup(service => service.GetAvailableDiscounts()).ThrowsAsync(new Exception("Test exception"));
+            _mockDiscountRepo.Setup(service => service.GetAvailableDiscounts()).ThrowsAsync(new Exception("Test exception"));
 
             // Act
             var result = (await _controller.GetDiscounts()).Result;
@@ -56,7 +57,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             var errorResponse = Assert.IsType<ErrorResponse>(badRequestResult.Value);
-            Assert.Equal("Cannot Get Discounts", errorResponse.Message);
+            errorResponse.Message.Should().Be("Cannot Get Discounts");
         }
 
         [Fact]
@@ -67,22 +68,24 @@ namespace ShopCheckOut.UnitTest.Controllers
             {
                 Name = "10% Off",
                 IsActive = true,
-                minQuantity = 5,
+                MinQuantity = 5,
                 DiscountType = DiscountTypes.Percentage,
                 Percentage = 10,
-                productSKU = "SKU123"
+                ProductSKU = "SKU123"
             };
-            var discount = new PercentageDiscount { Id = 1, Name = "10% Off", IsActive = true, minQuantity = 5, Percentage = 10 };
-            _mockProductsService.Setup(service => service.GetProductIdBySku(request.productSKU)).ReturnsAsync("1");
+            var discount = new PercentageDiscount { Id = 1, Name = "10% Off", IsActive = true, MinQuantity = 5, Percentage = 10 };
+            _mockProductsRepo.Setup(service => service.GetProductIdBySku(request.ProductSKU)).ReturnsAsync("1");
             _mockMapper.Setup(mapper => mapper.Map(request, request.GetType(), typeof(PercentageDiscount))).Returns(discount);
-            _mockDiscountService.Setup(service => service.AddNewDiscout(discount, 1)).ReturnsAsync(true);
+            _mockDiscountRepo.Setup(service => service.AddNewDiscout(discount, 1));
 
             // Act
             var result = await _controller.AddDiscount(request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.True((bool)okResult.Value);
+            result.Should().BeOfType<OkObjectResult>();
+            var okResult = result as OkObjectResult;
+            okResult.Value.Should().BeEquivalentTo(new { Message = "Discount added successfully" });
+
         }
 
         [Fact]
@@ -93,10 +96,10 @@ namespace ShopCheckOut.UnitTest.Controllers
             {
                 Name = "10% Off",
                 IsActive = true,
-                minQuantity = 5,
+                MinQuantity = 5,
                 DiscountType = (DiscountTypes)999, // Invalid discount type
                 Percentage = 10,
-                productSKU = "SKU123"
+                ProductSKU = "SKU123"
             };
 
             // Act
@@ -105,8 +108,8 @@ namespace ShopCheckOut.UnitTest.Controllers
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             var errorResponse = Assert.IsType<ErrorResponse>(badRequestResult.Value);
-            Console.WriteLine(errorResponse.Message);
-            Console.WriteLine(errorResponse.Error);
+            errorResponse.Message.Should().Be("Discount not created");
+            errorResponse.Error.Should().Be("The given key '999' was not present in the dictionary.");
         }
 
         [Fact]
@@ -114,22 +117,22 @@ namespace ShopCheckOut.UnitTest.Controllers
         {
             // Arrange
             var discountId = 1;
-            _mockDiscountService.Setup(service => service.DeleteDiscount(discountId)).ReturnsAsync(true);
+            _mockDiscountRepo.Setup(service => service.DeleteDiscount(discountId));
 
             // Act
             var result = await _controller.DeleteDiscount(discountId);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.True((bool)okResult.Value);
+            okResult.Value.Should().BeEquivalentTo(new { message = $"Deleted discount {discountId}" });
         }
 
         [Fact]
         public async Task DeleteDiscount_ReturnsBadRequest_WhenDiscountDeleteFails()
         {
             // Arrange
-            var discountId = 1;
-            _mockDiscountService.Setup(service => service.DeleteDiscount(discountId)).ReturnsAsync(false);
+            var discountId = 10;
+            _mockDiscountRepo.Setup(service => service.DeleteDiscount(discountId)).Throws(new KeyNotFoundException($"Discount {discountId} not found"));
 
             // Act
             var result = await _controller.DeleteDiscount(discountId);
@@ -137,8 +140,6 @@ namespace ShopCheckOut.UnitTest.Controllers
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             var errorResponse = Assert.IsType<ErrorResponse>(badRequestResult.Value);
-            Console.WriteLine(errorResponse.Message);
-            Console.WriteLine(errorResponse.Error);
         }
     }
 }

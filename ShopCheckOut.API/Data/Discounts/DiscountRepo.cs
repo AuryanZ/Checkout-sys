@@ -2,73 +2,55 @@
 
 namespace ShopCheckOut.API.Data.Discounts
 {
-    public class DiscountService : IDiscountService
+    public class DiscountRepo : IDiscountRepo
     {
-        private readonly List<ProductDiscountModel> _mockProductDiscounts;
-        private readonly List<DiscountsModel> _mockDiscounts;
-        private readonly List<ProductsModel> _mockProducts;
-        public DiscountService()
+        private readonly MockData Dataset;
+        public DiscountRepo()
         {
-            _mockProductDiscounts = new MockData().GetMockProductDiscounts();
-            _mockDiscounts = new MockData().GetMockDiscounts();
-            _mockProducts = new MockData().GetMockProducts();
+            Dataset = new MockData();
+
         }
 
-        public Task<bool> AddNewDiscout(DiscountsModel discount, int productId)
+        public Task AddNewDiscout(DiscountsModel discount, int productId)
         {
-            try
-            {
-                _mockDiscounts.Add(discount);
-                _mockProductDiscounts.Add(
-                    new ProductDiscountModel
-                    {
-                        ProductId = productId,
-                        DiscountId = discount.Id,
-                        Product = _mockProducts.FirstOrDefault(p => p.Id == productId),
-                        Discount = discount
-                    });
+            Dataset._mockDiscounts.Add(discount);
+            Dataset._mockProductDiscounts.Add(
+                new ProductDiscountModel
+                {
+                    ProductId = productId,
+                    DiscountId = discount.Id,
+                    Product = Dataset._mockProducts.FirstOrDefault(p => p.Id == productId) ?? new ProductsModel(),
+                    Discount = discount
+                });
 
-                return Task.FromResult(true);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            return Task.CompletedTask;
+
         }
 
-        public Task<bool> DeleteDiscount(int discountId)
+        public Task DeleteDiscount(int discountId)
         {
-            try
+            var discount = Dataset._mockDiscounts.FirstOrDefault(d => d.Id == discountId);
+            if (discount == null)
             {
-                var discount = _mockDiscounts.FirstOrDefault(d => d.Id == discountId);
-                if (discount == null)
-                {
-                    throw new Exception($"Discount with ID {discountId} not found.");
-                }
-                var productDiscounts = _mockProductDiscounts.Where(pd => pd.DiscountId == discountId).ToList();
-                foreach (var pd in productDiscounts)
-                {
-                    _mockProductDiscounts.Remove(pd);
-                }
-                discount.IsActive = false;
-
-                return Task.FromResult(true);
+                throw new KeyNotFoundException($"Discount {discountId} not found");
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
+            discount.IsActive = false;
+            Dataset._mockProductDiscounts.RemoveAll(pd => pd.DiscountId == discountId);
 
-            }
+            return Task.CompletedTask;
         }
 
         public Task<List<ProductDiscountModel>> GetAvailableDiscounts()
         {
-            var result = _mockProductDiscounts.Select(pd => new ProductDiscountModel
+            var productDict = Dataset._mockProducts.ToDictionary(p => p.Id);
+            var discountDict = Dataset._mockDiscounts.ToDictionary(d => d.Id);
+
+            var result = Dataset._mockProductDiscounts.Select(pd => new ProductDiscountModel
             {
                 ProductId = pd.ProductId,
                 DiscountId = pd.DiscountId,
-                Product = _mockProducts.FirstOrDefault(p => p.Id == pd.ProductId),
-                Discount = _mockDiscounts.FirstOrDefault(d => d.Id == pd.DiscountId)
+                Product = productDict.TryGetValue(pd.ProductId, out var product) ? product : new ProductsModel(),
+                Discount = discountDict.TryGetValue(pd.DiscountId, out var discount) ? discount : null
             }).ToList();
 
             return Task.FromResult(result);
@@ -77,12 +59,12 @@ namespace ShopCheckOut.API.Data.Discounts
         public Task<PriceAfterDiscountReturn> PriceAfterDiscount(ProductsModel product, int quantity)
         {
             // Find all discounts applicable to the product
-            var productDiscounts = _mockProductDiscounts
+            var productDiscounts = Dataset._mockProductDiscounts
                 .Where(pd => pd.ProductId == product.Id)
                 .ToList();
 
             // If no discounts, return the original price
-            if (!productDiscounts.Any())
+            if (productDiscounts.Count == 0)
             {
                 return Task.FromResult(new PriceAfterDiscountReturn
                     (product.Price * quantity,
@@ -92,8 +74,8 @@ namespace ShopCheckOut.API.Data.Discounts
             }
 
             // Get all active discounts for the product
-            var discounts = _mockDiscounts
-                .Where(d => productDiscounts.Any(pd => pd.DiscountId == d.Id) && d.IsActive && d.minQuantity <= quantity)?
+            var discounts = Dataset._mockDiscounts
+                .Where(d => productDiscounts.Any(pd => pd.DiscountId == d.Id) && d.IsActive && d.MinQuantity <= quantity)?
                 .ToList();
 
             // Calculate the lowest price and the corresponding discount
@@ -108,17 +90,15 @@ namespace ShopCheckOut.API.Data.Discounts
                 var discount = discounts[0];
                 var discountedPrice = discount.ApplyDiscount(product.Price, quantity);
 
-                if (discountedPrice.price < originalPrice)
+                if (discountedPrice.Price < originalPrice)
                 {
-                    finalPrice = discountedPrice.price;
+                    finalPrice = discountedPrice.Price;
                     highestDiscount = discount.Name;
-                    totalSaved = originalPrice - discountedPrice.price;
+                    totalSaved = originalPrice - discountedPrice.Price;
                 }
             }
             else if (discounts?.Count > 1)
             {
-                // get list of all possible combinations of discounts
-                var discountCombinations = new List<List<DiscountsModel>>();
                 TryDiscountCombinations(discounts, product.Price, quantity, ref finalPrice, ref highestDiscount, ref totalSaved);
             }
 
@@ -145,7 +125,7 @@ namespace ShopCheckOut.API.Data.Discounts
             {
                 return;
             }
-            var avaliableDiscounts = discounts.Where(d => d.minQuantity <= remainingQuantity).ToList();
+            var avaliableDiscounts = discounts.Where(d => d.GetMinQuantity() <= remainingQuantity).ToList();
             if (avaliableDiscounts.Count == 0)
             {
                 finalPrice += productPrice * remainingQuantity;
@@ -160,13 +140,13 @@ namespace ShopCheckOut.API.Data.Discounts
             foreach (var discount in avaliableDiscounts)
             {
                 var newPrice = discount.ApplyDiscount(productPrice, remainingQuantity);
-                var newSaved = productPrice * remainingQuantity - newPrice.price;
-                if (newPrice.price < originalPrice)
+                var newSaved = productPrice * remainingQuantity - newPrice.Price;
+                if (newPrice.Price < originalPrice)
                 {
-                    _discoutPrice = newPrice.price - newPrice.remaindQuantity * productPrice; // only add the discount price
+                    _discoutPrice = newPrice.Price - newPrice.RemaindQuantity * productPrice; // only add the discount price
                     _discoutNames = discount.Name;
                     _totalSaved = newSaved;
-                    _remainingQuantity = newPrice.remaindQuantity;
+                    _remainingQuantity = newPrice.RemaindQuantity;
                 }
             }
 

@@ -6,9 +6,9 @@ using System.Text.Json.Serialization;
 void ConfigureServices(IServiceCollection services)
 {
     services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-    services.AddScoped<IProductsService, ProductsService>();
-    services.AddScoped<IOrderService, OrderService>();
-    services.AddScoped<IDiscountService, DiscountService>();
+    services.AddScoped<IProductsRepo, ProductsRepo>();
+    services.AddScoped<IOrderRepo, OrderRepo>();
+    services.AddScoped<IDiscountRepo, DiscountRepo>();
 }
 
 var builder = WebApplication.CreateBuilder(args);

@@ -13,14 +13,15 @@ namespace ShopCheckOut.UnitTest.Controllers
 {
     public class TestOrderControllers
     {
-        private readonly Mock<IOrderService> _mockOrdersService;
-        private readonly Mock<IProductsService> _mockProductService;
+        private readonly Mock<IOrderRepo> _mockOrdersService;
+        private readonly Mock<IProductsRepo> _mockProductService;
         private readonly IMapper _mockMapper;
         private readonly OrderController _controller;
+        private readonly MockDataTest _mockDatset;
         public TestOrderControllers()
         {
-            _mockOrdersService = new Mock<IOrderService>();
-            _mockProductService = new Mock<IProductsService>();
+            _mockOrdersService = new Mock<IOrderRepo>();
+            _mockProductService = new Mock<IProductsRepo>();
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<ProductsModel, ProductReadDto>()
@@ -45,6 +46,7 @@ namespace ShopCheckOut.UnitTest.Controllers
             });
             _mockMapper = config.CreateMapper();
 
+            _mockDatset = new MockDataTest();
             _controller = new OrderController(
                 _mockMapper,
                 _mockOrdersService.Object,
@@ -123,7 +125,7 @@ namespace ShopCheckOut.UnitTest.Controllers
         [Fact]
         public async Task AddItemToOrder_ReturnsOk_WhenItemAddedSuccessfully()
         {
-            var product = new ProductsModel { Id = 1, SKU = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" };
+            var product = new ProductsModel { Id = 1, Sku = "SKU1", Name = "Product1", Category = "Category1", Price = 100, PriceUnit = "kg" };
             var orderItems = new OrderItems { OrderId = 1, Product = product, Quantity = 2 };
             var order = new OrdersModel { Id = 1, OrderDate = new DateTime(2025, 3, 5), OrderItems = new List<OrderItems>(), TotalAmount = 0 };
 
@@ -184,7 +186,6 @@ namespace ShopCheckOut.UnitTest.Controllers
         public async Task DeleteItemFromOrder_ReturnsBadRequest_WhenInvalidOrderId()
         {
             // Arrange
-            var _mockProduct = new MockDataTest().GetMockProducts();
             _mockProductService.Setup(p => p.GetProductIdBySku(It.IsAny<string>())).ReturnsAsync("1");
             _mockOrdersService.Setup(o => o.DeleteItemFromOrder(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync((OrdersModel)null);
@@ -200,12 +201,11 @@ namespace ShopCheckOut.UnitTest.Controllers
         public async Task DeleteItemFromOrder_ReturnsOk()
         {
             // Arrange
-            var _mockProduct = new MockDataTest().GetMockProducts();
             List<OrderItems> mockOrderItem = new List<OrderItems>()
             {
-                new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = _mockProduct.FirstOrDefault(p => p.Id == 1), Quantity = 2 },
-                new OrderItems() { Id = 11, OrderId = 1, ProductId = 4, Product = _mockProduct.FirstOrDefault(p => p.Id == 4), Quantity = 1 },
-                new OrderItems() { Id = 12, OrderId = 1, ProductId = 2, Product = _mockProduct.FirstOrDefault(p => p.Id == 2), Quantity = 1 },
+                new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = _mockDatset._mockProducts.FirstOrDefault(p => p.Id == 1), Quantity = 2 },
+                new OrderItems() { Id = 11, OrderId = 1, ProductId = 4, Product = _mockDatset._mockProducts.FirstOrDefault(p => p.Id == 4), Quantity = 1 },
+                new OrderItems() { Id = 12, OrderId = 1, ProductId = 2, Product = _mockDatset._mockProducts.FirstOrDefault(p => p.Id == 2), Quantity = 1 },
             };
 
             _mockProductService.Setup(p => p.GetProductIdBySku(It.IsAny<string>())).ReturnsAsync("1");
@@ -248,12 +248,11 @@ namespace ShopCheckOut.UnitTest.Controllers
         public async Task TestCheckOutOrder_Success()
         {
             // Arrange
-            var _mockProduct = new MockDataTest().GetMockProducts();
             List<OrderItems> mockOrderItem = new List<OrderItems>()
             {
-                new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = _mockProduct.FirstOrDefault(p => p.Id == 1), Quantity = 2 },
-                new OrderItems() { Id = 11, OrderId = 1, ProductId = 4, Product = _mockProduct.FirstOrDefault(p => p.Id == 4), Quantity = 1 },
-                new OrderItems() { Id = 12, OrderId = 1, ProductId = 2, Product = _mockProduct.FirstOrDefault(p => p.Id == 2), Quantity = 1 },
+                new OrderItems() { Id = 10, OrderId = 1, ProductId = 1, Product = _mockDatset._mockProducts.FirstOrDefault(p => p.Id == 1), Quantity = 2 },
+                new OrderItems() { Id = 11, OrderId = 1, ProductId = 4, Product = _mockDatset._mockProducts.FirstOrDefault(p => p.Id == 4), Quantity = 1 },
+                new OrderItems() { Id = 12, OrderId = 1, ProductId = 2, Product = _mockDatset._mockProducts.FirstOrDefault(p => p.Id == 2), Quantity = 1 },
             };
             _mockOrdersService.Setup(o => o.OrderCheckOut(It.IsAny<int>()))
                 .ReturnsAsync(new OrdersModel { Id = 1, OrderItems = mockOrderItem, TotalAmount = 80 });

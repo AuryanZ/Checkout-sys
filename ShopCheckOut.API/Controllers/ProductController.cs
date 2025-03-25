@@ -10,11 +10,11 @@ namespace ShopCheckOut.API.Controllers;
 [Route("[controller]")]
 public class ProductController : ControllerBase
 {
-    private readonly IProductsService _iProductsService;
+    private readonly IProductsRepo _iProductsRepo;
     private readonly IMapper _mapper;
-    public ProductController(IProductsService iProductsService, IMapper mapper)
+    public ProductController(IProductsRepo iProductsService, IMapper mapper)
     {
-        _iProductsService = iProductsService;
+        _iProductsRepo = iProductsService;
         _mapper = mapper;
     }
     [HttpGet(Name = "Get ALL Products")]
@@ -22,7 +22,7 @@ public class ProductController : ControllerBase
     {
         try
         {
-            var products = await _iProductsService.GetProducts();
+            var products = await _iProductsRepo.GetProducts();
             var result = _mapper.Map<List<ProductReadDto>>(products);
             return Ok(result);
         }
@@ -41,12 +41,10 @@ public class ProductController : ControllerBase
             try
             {
                 var product = _mapper.Map<ProductsModel>(productCreateDto);
-                var result = await _iProductsService.AddProduct(product);
-                if (result)
-                {
-                    return Ok(result);
-                }
-                return BadRequest(new ErrorResponse("Product Add not Success", "Serviec return null"));
+                await _iProductsRepo.AddProduct(product);
+
+                return Ok(new { message = "Add product success" });
+
             }
             catch (Exception ex)
             {
@@ -68,7 +66,7 @@ public class ProductController : ControllerBase
         }
         try
         {
-            var products = await _iProductsService.GetProductsByCategory(category);
+            var products = await _iProductsRepo.GetProductsByCategory(category);
             var result = _mapper.Map<List<ProductReadDto>>(products);
             return Ok(result);
         }
@@ -88,7 +86,7 @@ public class ProductController : ControllerBase
         }
         try
         {
-            var product = await _iProductsService.GetProductBySKU(sku);
+            var product = await _iProductsRepo.GetProductBySKU(sku);
             if (product == null)
             {
                 return NotFound();
