@@ -2,7 +2,7 @@
 {
     public class AddItemRequest
     {
-        public string ItemSKU { get; set; }
+        public string ItemSku { get; set; }
         public string Quantity { get; set; }
     }
 }

@@ -23,6 +23,9 @@ namespace ShopCheckOut.API.Profiles
             CreateMap<AddDiscountRequest, BuyXGetYDiscount>()
                 .ForMember(dest => dest.FreeItem, opt => opt.MapFrom(src => src.FreeItem));
 
+            CreateMap<ProductDiscountModel, ProductDiscountDto>()
+                .IncludeAllDerived();
+
         }
     }
 }

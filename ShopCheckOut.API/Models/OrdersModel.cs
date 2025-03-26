@@ -7,6 +7,7 @@ namespace ShopCheckOut.API.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        // self-incrementing primary key
         public int Id { get; set; }
         public string? CustomerId { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.Now;
