@@ -1,6 +1,9 @@
 using ShopCheckOut.API.Data.Discounts;
 using ShopCheckOut.API.Data.Orders;
 using ShopCheckOut.API.Data.Products;
+using ShopCheckOut.API.Data.Services.Discounts;
+using ShopCheckOut.API.Data.Services.Orders;
+using ShopCheckOut.API.Data.Services.Products;
 using System.Text.Json.Serialization;
 
 void ConfigureServices(IServiceCollection services)
@@ -9,6 +12,10 @@ void ConfigureServices(IServiceCollection services)
     services.AddScoped<IProductsRepo, ProductsRepo>();
     services.AddScoped<IOrderRepo, OrderRepo>();
     services.AddScoped<IDiscountRepo, DiscountRepo>();
+
+    services.AddScoped<IProductServices, ProductServices>();
+    services.AddScoped<IDiscountService, DiscountService>();
+    services.AddScoped<IOrderService, OrderService>();
 }
 
 var builder = WebApplication.CreateBuilder(args);

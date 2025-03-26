@@ -1,138 +1,107 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using ShopCheckOut.API.Data.Orders;
-using ShopCheckOut.API.Data.Products;
+﻿using Microsoft.AspNetCore.Mvc;
+using ShopCheckOut.API.Data.Services.Orders;
 using ShopCheckOut.API.Dtos.Orders;
-using ShopCheckOut.API.Models;
 
 namespace ShopCheckOut.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class OrderController : ControllerBase
+public class OrderController(IOrderService orderService) : ControllerBase
 {
-    private readonly IMapper _mapper;
-    private readonly IOrderRepo _orderRepo;
-    private readonly IProductsRepo _productsRepo;
-    public OrderController(IMapper mapper, IOrderRepo orderService, IProductsRepo productsService)
-    {
-        _mapper = mapper;
-        _orderRepo = orderService;
-        _productsRepo = productsService;
-    }
-
     [HttpPost("new", Name = "NewOrder")]
     public async Task<ActionResult<OrderCreateDto>> NewOrder([FromQuery] string? CustomerId)
     {
         try
         {
-            var newOrder = await _orderRepo.NewOrder(CustomerId);
-            var result = _mapper.Map<OrderCreateDto>(newOrder);
-
-            if (result != null)
-            {
-                return Ok(result);
-            }
-            return BadRequest(new ErrorResponse("New Order Not Created", "No data found"));
+            var result = await orderService.NewOrder(CustomerId);
+            return Ok(result);
+        }
+        catch (ApplicationException ex)
+        {
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
         }
         catch (Exception ex)
         {
-
-            return BadRequest(new ErrorResponse("New Order Not Created", ex.Message));
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
         }
     }
 
     [HttpPost("item", Name = "AddItemToOrder")]
     public async Task<ActionResult<OrderUpdateDto>> AddItemToOrder([FromQuery] string orderId, [FromBody] AddItemRequest request)
     {
-        int _orderId = 0;
-        int _quantity = 0;
-        if (string.IsNullOrEmpty(request.Quantity) || string.IsNullOrEmpty(request.ItemSKU))
-        {
-            return BadRequest(new ErrorResponse("No order id or SKu", "Requset data missing"));
-        }
         try
         {
-            _orderId = int.Parse(orderId);
-            _quantity = int.Parse(request.Quantity);
-
-            ProductsModel product = await _productsRepo.GetProductBySKU(request.ItemSKU);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            var order = await _orderRepo.AddItemToOrder(_orderId, product, _quantity);
-            if (order == null)
-            {
-                return BadRequest(new ErrorResponse($"Cannot add item to {orderId}", "Order not Found"));
-
-            }
-            var result = _mapper.Map<OrderUpdateDto>(order);
+            var result = await orderService.AddItemToOrder(orderId, request);
             return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ErrorResponse("Order not found.", ex.Message));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ErrorResponse("Invalid request data.", ex.Message));
+        }
+        catch (ApplicationException ex)
+        {
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
         }
         catch (Exception ex)
         {
-            return BadRequest(new ErrorResponse("Illegal ID. Error: ", ex.Message));
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
         }
     }
 
     [HttpDelete("item", Name = "RemoveItemFromOrder")]
     public async Task<ActionResult<OrderUpdateDto>> RemoveItemFromOrder([FromQuery] string orderId, [FromBody] RemoveItemRequest request)
     {
-        if (string.IsNullOrEmpty(request.Quantity)
-            || string.IsNullOrEmpty(request.ItemSku)
-            || string.IsNullOrEmpty(orderId))
-        {
-            return BadRequest(new ErrorResponse("Remove item Error: ", "No order id or Sku"));
-        }
         try
         {
-            int _orderId = int.Parse(orderId);
-            int _quantity = int.Parse(request.Quantity);
-            string productId = await _productsRepo.GetProductIdBySku(request.ItemSku);
-            if (string.IsNullOrEmpty(productId))
-            {
-                return BadRequest(new ErrorResponse($"Connot find product {request.ItemSku}", "Invalid product Sku"));
-
-            }
-            int _productId = int.Parse(productId);
-            var order = await _orderRepo.DeleteItemFromOrder(_orderId, _productId, _quantity);
-            if (order == null)
-            {
-                return NotFound("Order not Found");
-
-            }
-            var result = _mapper.Map<OrderUpdateDto>(order);
-            return Ok(result);
+            var order = await orderService.RemoveItemFromOrder(orderId, request);
+            return Ok(order);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ErrorResponse("Invalid request data.", ex.Message));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ErrorResponse("Order not found.", ex.Message));
+        }
+        catch (ApplicationException ex)
+        {
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
         }
         catch (Exception ex)
         {
-
-            return BadRequest(new ErrorResponse("Item not removed", ex.Message));
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
         }
     }
 
     [HttpGet("checkout", Name = "CheckOutOrder")]
     public async Task<ActionResult<OrderCheckoutDto>> CheckOutOrder([FromQuery] string orderId)
     {
-        if (string.IsNullOrEmpty(orderId))
-        {
-            return BadRequest(new ErrorResponse("Check out Error", "No order id"));
-        }
         try
         {
-            int _orderId = int.Parse(orderId);
-            var order = await _orderRepo.OrderCheckOut(_orderId);
-            if (order == null)
-            {
-                return NotFound("Order not Found");
-            }
-            var result = _mapper.Map<OrderCheckoutDto>(order);
-            return Ok(result);
+            var order = await orderService.OrderCheckOut(orderId);
+
+            return Ok(order);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ErrorResponse("Order not found.", ex.Message));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ErrorResponse("Invalid request data.", ex.Message));
+        }
+        catch (ApplicationException ex)
+        {
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
         }
         catch (Exception ex)
         {
-            return BadRequest(new ErrorResponse("Check out Error", ex.Message));
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
         }
     }
 }

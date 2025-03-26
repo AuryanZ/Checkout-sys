@@ -1,60 +1,58 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using ShopCheckOut.API.Data.Products;
+using ShopCheckOut.API.Data.Services.Products;
 using ShopCheckOut.API.Dtos.Products;
-using ShopCheckOut.API.Models;
 
 namespace ShopCheckOut.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ProductController : ControllerBase
+public class ProductController(IProductServices productServices) : ControllerBase
 {
-    private readonly IProductsRepo _iProductsRepo;
-    private readonly IMapper _mapper;
-    public ProductController(IProductsRepo iProductsService, IMapper mapper)
-    {
-        _iProductsRepo = iProductsService;
-        _mapper = mapper;
-    }
     [HttpGet(Name = "Get ALL Products")]
     public async Task<ActionResult<List<ProductReadDto>>> GetProducts()
     {
         try
         {
-            var products = await _iProductsRepo.GetProducts();
-            var result = _mapper.Map<List<ProductReadDto>>(products);
-            return Ok(result);
+            var products = await productServices.GetProducts();
+            return Ok(products);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ErrorResponse("Product Not Found", ex.Message));
+        }
+        catch (ApplicationException ex)
+        {
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
         }
         catch (Exception ex)
         {
-
-            return BadRequest(new ErrorResponse("Cannot Get Products", ex.Message));
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
         }
     }
 
     [HttpPost(Name = "AddProduct")]
     public async Task<IActionResult> AddProduct([FromBody] ProductCreateDto productCreateDto)
     {
-        if (productCreateDto != null)
-        {
-            try
-            {
-                var product = _mapper.Map<ProductsModel>(productCreateDto);
-                await _iProductsRepo.AddProduct(product);
-
-                return Ok(new { message = "Add product success" });
-
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ErrorResponse("Prodcut not created", ex.Message));
-            }
-        }
-        else
+        if (productCreateDto == null)
         {
             return BadRequest(new ErrorResponse("Product Add not Success", "Requset data missing"));
         }
+        try
+        {
+            await productServices.AddProduct(productCreateDto);
+
+            return Ok(new { message = "Add product success" });
+
+        }
+        catch (ApplicationException ex)
+        {
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
+        }
+
     }
 
     [HttpGet("category/{category}", Name = "GetProductByCategory")]
@@ -62,17 +60,25 @@ public class ProductController : ControllerBase
     {
         if (string.IsNullOrEmpty(category))
         {
-            return BadRequest(new ErrorResponse("Cannot Get Products", "Request category"));
+            return BadRequest(new ErrorResponse("Category must entry", "Request category"));
         }
         try
         {
-            var products = await _iProductsRepo.GetProductsByCategory(category);
-            var result = _mapper.Map<List<ProductReadDto>>(products);
-            return Ok(result);
+            var products = await productServices.GetProductsByCategory(category);
+            return Ok(products);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ErrorResponse("Product Not Found", ex.Message));
+        }
+        catch (ApplicationException ex)
+        {
+
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
         }
         catch (Exception ex)
         {
-            return BadRequest(new ErrorResponse($"Cannot Get Products in {category}", ex.Message));
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
 
         }
     }
@@ -86,17 +92,20 @@ public class ProductController : ControllerBase
         }
         try
         {
-            var product = await _iProductsRepo.GetProductBySKU(sku);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            var result = _mapper.Map<ProductReadDto>(product);
-            return Ok(result);
+            var product = await productServices.GetProductBySKU(sku);
+            return Ok(product);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ErrorResponse("Product Not Found", ex.Message));
+        }
+        catch (ApplicationException ex)
+        {
+            return StatusCode(500, new ErrorResponse("Internal server error.", ex.Message));
         }
         catch (Exception ex)
         {
-            return BadRequest(new ErrorResponse($"Cannot Get Products {sku}", ex.Message));
+            return StatusCode(500, new ErrorResponse("An unexpected error occurred.", ex.Message));
         }
     }
 

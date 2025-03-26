@@ -3,41 +3,25 @@ using ShopCheckOut.API.Models;
 
 namespace ShopCheckOut.API.Data.Orders
 {
-
     public class OrderRepo : IOrderRepo
     {
-        private readonly IDiscountRepo _discountRepo;
-        private readonly MockData Dataset;
+        private readonly IDiscountRepo _discountRepo = new DiscountRepo();
+        private readonly MockData Dataset = new MockData();
 
-        public OrderRepo(IDiscountRepo discountService)
+        public Task<OrdersModel> NewOrder(OrdersModel newOrder)
         {
-            _discountRepo = discountService;
-            Dataset = new MockData();
-        }
-
-        public Task<OrdersModel> NewOrder(string? customerId)
-        {
-            var newOrder = new OrdersModel
-            {
-                Id = Dataset._mockOrders.Any() ? Dataset._mockOrders.Max(o => o.Id) + 1 : 1,
-                CustomerId = customerId,
-                OrderDate = DateTime.Now,
-                OrderItems = new List<OrderItems>(),
-                TotalAmount = 0
-            };
+            newOrder.Id = Dataset._mockOrders.Any() ? Dataset._mockOrders.Max(o => o.Id) + 1 : 1;
 
             Dataset._mockOrders.Add(newOrder);
-            return Task.FromResult(newOrder);
+            return newOrder == null
+                ? throw new ArgumentNullException("Order cannot be null")
+                : Task.FromResult(newOrder);
         }
 
         public async Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity)
         {
-            var order = Dataset._mockOrders.FirstOrDefault(o => o.Id == orderId);
-            if (order == null)
-            {
-                throw new KeyNotFoundException($"Order with ID {orderId} not found.");
-            }
-
+            var order = Dataset._mockOrders.FirstOrDefault(o => o.Id == orderId)
+                ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
             var existingItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == product.Id);
             if (existingItem != null)
             {
@@ -52,7 +36,7 @@ namespace ShopCheckOut.API.Data.Orders
             {
                 var newOrderItem = new OrderItems
                 {
-                    Id = order.OrderItems.Any() ? order.OrderItems.Max(oi => oi.Id) + 1 : 1,
+                    Id = order.OrderItems.Count == 0 ? order.OrderItems.Max(oi => oi.Id) + 1 : 1,
                     OrderId = orderId,
                     ProductId = product.Id,
                     Product = product,
@@ -79,21 +63,14 @@ namespace ShopCheckOut.API.Data.Orders
             return order;
         }
 
-        public async Task<OrdersModel> DeleteItemFromOrder(int orderId, int productId, int quantityRemove)
+        public async Task<OrdersModel> RemoveItemFromOrder(int orderId, int productId, int quantityRemove)
         {
             var order = Dataset._mockOrders.FirstOrDefault(o => o.Id == orderId) ??
-                throw new Exception($"Order with ID {orderId} not found.");
-            if (order == null)
-            {
-                throw new Exception($"Order with ID {orderId} not found.");
-            }
+                throw new KeyNotFoundException($"Order with ID {orderId} not found.");
 
-            var orderItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == productId) ??
-                throw new Exception($"Order Item with ID {productId} not found.");
-            if (orderItem == null)
-            {
-                throw new Exception($"Order Item with ID {productId} not found.");
-            }
+            var orderItem = (order.OrderItems.FirstOrDefault(oi => oi.ProductId == productId))
+                ?? throw new KeyNotFoundException($"Order Item with ID {productId} not found.");
+
             if (quantityRemove > 0)
             {
                 int quantityDiff = orderItem.Quantity - quantityRemove;
@@ -133,12 +110,8 @@ namespace ShopCheckOut.API.Data.Orders
         public async Task<OrdersModel> OrderCheckOut(int orderId)
         {
             var order = Dataset._mockOrders.FirstOrDefault(o => o.Id == orderId);
-            if (order == null)
-            {
-                throw new KeyNotFoundException($"Order ID {orderId} not found");
-            }
 
-            return order; // if validation not required
+            return order ?? throw new KeyNotFoundException($"Order ID {orderId} not found"); // if validation not required
 
             //var orderItems = order.OrderItems;
             //List<OrderItems> tempOrderItem = new List<OrderItems>();

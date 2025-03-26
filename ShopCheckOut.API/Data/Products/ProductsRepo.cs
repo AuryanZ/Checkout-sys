@@ -6,11 +6,7 @@ namespace ShopCheckOut.API.Data.Products
     public class ProductsRepo : IProductsRepo
     {
         // Mocking the products list    
-        private readonly MockData _dataset;
-        public ProductsRepo()
-        {
-            _dataset = new MockData();
-        }
+        private readonly MockData _dataset = new MockData();
 
         public Task AddProduct(ProductsModel product)
         {
@@ -22,25 +18,17 @@ namespace ShopCheckOut.API.Data.Products
         public Task<ProductsModel> GetProductBySKU(string sku)
         {
             var result = _dataset._mockProducts.FirstOrDefault(p => p.Sku == sku);
-            if (result == null)
-            {
-                throw new KeyNotFoundException($"Product {sku} not found");
-            }
-
-            return Task.FromResult(result);
-
+            return result == null
+                ? throw new KeyNotFoundException($"Product {sku} not found")
+                : Task.FromResult(result);
         }
 
         public Task<string> GetProductIdBySku(string sku)
         {
             var result = _dataset._mockProducts.FirstOrDefault(p => p.Sku == sku);
-            if (result == null)
-            {
-                throw new KeyNotFoundException($"Product {sku} not found");
-            }
-
-            return Task.FromResult(result.Id.ToString());
-
+            return result == null
+                ? throw new KeyNotFoundException($"Product {sku} not found")
+                : Task.FromResult(result.Id.ToString());
         }
 
         public Task<List<ProductsModel>> GetProducts()
@@ -50,13 +38,7 @@ namespace ShopCheckOut.API.Data.Products
 
         public Task<List<ProductsModel>> GetProductsByCategory(string category)
         {
-
             var result = _dataset._mockProducts.Where(p => p.Category == category).ToList();
-            if (result.Count == 0)
-            {
-                throw new KeyNotFoundException($"No Product find in category {category}");
-            }
-
             return Task.FromResult(result);
 
         }

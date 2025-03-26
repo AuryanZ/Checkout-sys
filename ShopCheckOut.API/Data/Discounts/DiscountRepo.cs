@@ -4,22 +4,19 @@ namespace ShopCheckOut.API.Data.Discounts
 {
     public class DiscountRepo : IDiscountRepo
     {
-        private readonly MockData Dataset;
-        public DiscountRepo()
-        {
-            Dataset = new MockData();
-
-        }
+        private readonly MockData Dataset = new MockData();
 
         public Task AddNewDiscout(DiscountsModel discount, int productId)
         {
+            var product = Dataset._mockProducts.FirstOrDefault(p => p.Id == productId)
+                ?? throw new KeyNotFoundException($"Product {productId} not found");
             Dataset._mockDiscounts.Add(discount);
             Dataset._mockProductDiscounts.Add(
                 new ProductDiscountModel
                 {
-                    ProductId = productId,
+                    ProductId = product.Id,
                     DiscountId = discount.Id,
-                    Product = Dataset._mockProducts.FirstOrDefault(p => p.Id == productId) ?? new ProductsModel(),
+                    Product = product,
                     Discount = discount
                 });
 
@@ -29,11 +26,8 @@ namespace ShopCheckOut.API.Data.Discounts
 
         public Task DeleteDiscount(int discountId)
         {
-            var discount = Dataset._mockDiscounts.FirstOrDefault(d => d.Id == discountId);
-            if (discount == null)
-            {
-                throw new KeyNotFoundException($"Discount {discountId} not found");
-            }
+            var discount = Dataset._mockDiscounts.FirstOrDefault(d => d.Id == discountId)
+                ?? throw new KeyNotFoundException($"Discount {discountId} not found");
             discount.IsActive = false;
             Dataset._mockProductDiscounts.RemoveAll(pd => pd.DiscountId == discountId);
 
