@@ -18,49 +18,12 @@ namespace ShopCheckOut.API.Data.Orders
                 : Task.FromResult(newOrder);
         }
 
-        public async Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity)
+        public Task<OrdersModel> getOrderbyId(int orderId)
         {
-            var order = Dataset._mockOrders.FirstOrDefault(o => o.Id == orderId)
-                ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
-            var existingItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == product.Id);
-            if (existingItem != null)
-            {
-                var originalItemAmount = (existingItem.Product.Price * existingItem.Quantity) - existingItem.Saved;
-                var originalSaved = existingItem.Saved;
-                // If product exists, increase quantity
-                existingItem.Quantity += quantity;
-                order.TotalAmount -= originalItemAmount;
-                order.TotalSaved -= originalSaved;
-            }
-            else // If product does not exist, add new order item
-            {
-                var newOrderItem = new OrderItems
-                {
-                    Id = order.OrderItems.Count == 0 ? order.OrderItems.Max(oi => oi.Id) + 1 : 1,
-                    OrderId = orderId,
-                    ProductId = product.Id,
-                    Product = product,
-                    Quantity = quantity
-                };
-
-                order.OrderItems.Add(newOrderItem);
-                existingItem = newOrderItem;
-            }
-            try
-            {
-                var priceAfterDisc = await GetDiscountedPrice(existingItem);
-                existingItem.Saved = priceAfterDisc.ItemSaved;
-                existingItem.DiscountName = priceAfterDisc.DiscoutName;
-
-                order.TotalAmount += priceAfterDisc.Price;
-                order.TotalSaved += priceAfterDisc.ItemSaved;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
-            return order;
+            var order = Dataset._mockOrders.FirstOrDefault(o => o.Id == orderId);
+            return order == null
+                ? throw new KeyNotFoundException($"Order with ID {orderId} not found.")
+                : Task.FromResult(order);
         }
 
         public async Task<OrdersModel> RemoveItemFromOrder(int orderId, int productId, int quantityRemove)
@@ -71,38 +34,38 @@ namespace ShopCheckOut.API.Data.Orders
             var orderItem = (order.OrderItems.FirstOrDefault(oi => oi.ProductId == productId))
                 ?? throw new KeyNotFoundException($"Order Item with ID {productId} not found.");
 
-            if (quantityRemove > 0)
-            {
-                int quantityDiff = orderItem.Quantity - quantityRemove;
-                if (quantityDiff <= 0) // If quantity to remove is greater than or equal to existing quantity, remove item
-                {
-                    order.OrderItems.Remove(orderItem);
-                    var originalPrice = orderItem.Product.Price * orderItem.Quantity;
-                    order.TotalAmount -= originalPrice - orderItem.Saved;
-                    order.TotalSaved -= orderItem.Saved;
-                }
-                else
-                {
-                    var originalItemAmount = (orderItem.Product.Price * orderItem.Quantity) - orderItem.Saved;
-                    var originalSaved = orderItem.Saved;
+            //if (quantityRemove > 0)
+            //{
+            //    int quantityDiff = orderItem.Quantity - quantityRemove;
+            //    if (quantityDiff <= 0) // If quantity to remove is greater than or equal to existing quantity, remove item
+            //    {
+            //        order.OrderItems.Remove(orderItem);
+            //        var originalPrice = orderItem.Product.Price * orderItem.Quantity;
+            //        order.TotalAmount -= originalPrice - orderItem.Saved;
+            //        order.TotalSaved -= orderItem.Saved;
+            //    }
+            //    else
+            //    {
+            //        var originalItemAmount = (orderItem.Product.Price * orderItem.Quantity) - orderItem.Saved;
+            //        var originalSaved = orderItem.Saved;
 
-                    orderItem.Quantity = quantityDiff;
-                    try
-                    {
-                        var priceAfterDisc = await GetDiscountedPrice(orderItem);
+            //        orderItem.Quantity = quantityDiff;
+            //        try
+            //        {
+            //            var priceAfterDisc = await GetDiscountedPrice(orderItem);
 
-                        orderItem.Saved = priceAfterDisc.ItemSaved;
-                        orderItem.DiscountName = priceAfterDisc.DiscoutName;
+            //            orderItem.Saved = priceAfterDisc.ItemSaved;
+            //            orderItem.DiscountName = priceAfterDisc.DiscoutName;
 
-                        order.TotalAmount -= originalItemAmount - priceAfterDisc.Price;
-                        order.TotalSaved -= originalSaved - priceAfterDisc.ItemSaved;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-            }
+            //            order.TotalAmount -= originalItemAmount - priceAfterDisc.Price;
+            //            order.TotalSaved -= originalSaved - priceAfterDisc.ItemSaved;
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            throw new Exception(ex.Message);
+            //        }
+            //    }
+            //}
 
             return order;
         }
@@ -131,12 +94,40 @@ namespace ShopCheckOut.API.Data.Orders
             //return order;
         }
 
-        private async Task<PriceAfterDiscountReturn> GetDiscountedPrice(OrderItems order)
+        public Task<OrdersModel> AddOrderItem(OrderItems orderItem, int orderid, bool isExist)
         {
-            ProductsModel productsModel = order.Product;
-            int quantity = order.Quantity;
-            var productAfterDiscout = await _discountRepo.PriceAfterDiscount(productsModel, quantity);
-            return productAfterDiscout;
+            var order = Dataset._mockOrders.FirstOrDefault(o => o.Id == orderid);
+            if (order == null)
+            {
+                throw new KeyNotFoundException($"Order with ID {orderid} not found.");
+            }
+            if (isExist)
+            {
+                var existingOrderItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == orderItem.ProductId);
+                if (existingOrderItem != null)
+                {
+                    var originalItemAmount =
+                        (existingOrderItem.Product.Price
+                        * existingOrderItem.Quantity)
+                        - existingOrderItem.Saved;
+                    var originalSaved = existingOrderItem.Saved;
+
+                    existingOrderItem.Quantity += orderItem.Quantity;
+                    order.TotalAmount -= originalItemAmount;
+                    order.TotalSaved -= originalSaved;
+                }
+            }
+            else
+            {
+                orderItem.Id = order.OrderItems.Any() ? order.OrderItems.Max(oi => oi.Id) + 1 : 1;
+                order.OrderItems.Add(orderItem);
+            }
+
+
+
+
+            return Task.FromResult(order);
         }
+
     }
 }

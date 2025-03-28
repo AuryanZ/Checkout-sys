@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 void ConfigureServices(IServiceCollection services)
 {
     services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
     services.AddScoped<IProductsRepo, ProductsRepo>();
     services.AddScoped<IOrderRepo, OrderRepo>();
     services.AddScoped<IDiscountRepo, DiscountRepo>();
@@ -16,6 +17,18 @@ void ConfigureServices(IServiceCollection services)
     services.AddScoped<IProductServices, ProductServices>();
     services.AddScoped<IDiscountService, DiscountService>();
     services.AddScoped<IOrderService, OrderService>();
+
+    services.AddCors(options =>
+    {
+        options.AddPolicy("AllowSpecificOrigin",
+            builder =>
+            {
+                builder.WithOrigins("http://localhost:3000")
+                       .AllowAnyHeader()
+                       .AllowAnyMethod()
+                       .WithExposedHeaders("Authorization", "refreshToken");
+            });
+    });
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,12 +54,19 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors(
+        builder =>
+        builder
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader());
 }
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseCors("AllowSpecificOrigin");
 
 app.MapControllers();
 

@@ -156,5 +156,7 @@ namespace ShopCheckOut.UnitTest.Data.Services.Discounts
             // Assert
             _mockDiscountRepo.Verify(repo => repo.DeleteDiscount(discountId), Times.Once);
         }
+
+
     }
 }

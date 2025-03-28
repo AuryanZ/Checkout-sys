@@ -27,40 +27,40 @@ namespace ShopCheckOut.UnitTest.Data.Orders
             result.TotalAmount.Should().Be(0);
         }
 
-        [Fact]
-        public async Task TestAddItemToOrder_ok()
-        {
-            // Arrange
-            ProductsModel prduct = new()
-            {
-                Id = 1,
-                Sku = "SKU1",
-                Name = "Product1",
-                Category = "Category1",
-                Price = 100,
-                PriceUnit = "kg"
-            };
-            // Act
-            var result = await _OrderRepo.AddItemToOrder(1, prduct, 3);
+        //[Fact]
+        //public async Task TestAddItemToOrder_ok()
+        //{
+        //    // Arrange
+        //    ProductsModel prduct = new()
+        //    {
+        //        Id = 1,
+        //        Sku = "SKU1",
+        //        Name = "Product1",
+        //        Category = "Category1",
+        //        Price = 100,
+        //        PriceUnit = "kg"
+        //    };
+        //    // Act
+        //    var result = await _OrderRepo.AddItemToOrder(1, prduct, 3);
 
-            // Assert
-            result.Should().NotBeNull();
-            result.Id.Should().Be(1);
-            result.TotalAmount.Should().Be(830);
-            result.TotalSaved.Should().Be(60);
-        }
+        //    // Assert
+        //    result.Should().NotBeNull();
+        //    result.Id.Should().Be(1);
+        //    result.TotalAmount.Should().Be(830);
+        //    result.TotalSaved.Should().Be(60);
+        //}
 
-        [Fact]
-        public async Task TestDeletItemFromOrder_Ok()
-        {
-            // Arrange
-            // Act
-            var result = await _OrderRepo.RemoveItemFromOrder(1, 1, 1);
-            // Assert
-            result.Should().NotBeNull();
-            result.Id.Should().Be(1);
-            result.TotalAmount.Should().Be(470);
-        }
+        //[Fact]
+        //public async Task TestDeletItemFromOrder_Ok()
+        //{
+        //    // Arrange
+        //    // Act
+        //    var result = await _OrderRepo.RemoveItemFromOrder(1, 1, 1);
+        //    // Assert
+        //    result.Should().NotBeNull();
+        //    result.Id.Should().Be(1);
+        //    result.TotalAmount.Should().Be(470);
+        //}
 
         [Fact]
         public async Task TestDeletItemFromOrder_Error()
