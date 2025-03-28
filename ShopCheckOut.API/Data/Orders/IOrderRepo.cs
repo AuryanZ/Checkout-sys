@@ -5,10 +5,14 @@ namespace ShopCheckOut.API.Data.Orders
     {
         Task<OrdersModel> NewOrder(OrdersModel? newOrder);
 
-        Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity);
+        //Task<OrdersModel> AddItemToOrder(int orderId, ProductsModel product, int quantity);
 
         Task<OrdersModel> RemoveItemFromOrder(int orderId, int productId, int quantityRemove);
 
         Task<OrdersModel> OrderCheckOut(int orderId);
+
+        Task<OrdersModel> getOrderbyId(int orderId);
+
+        Task<OrdersModel> AddOrderItem(OrderItems orderItem, int orderid, bool isExist);
     }
 }

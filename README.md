@@ -24,3 +24,10 @@ http://codekata.com/kata/kata09-back-to-the-checkout/
     - [x] Add totalSaved field in Order
     - [x] "Add order item" function should check if the discount is available for the product
     - [x] "Delete order item" function should check and remove the discount if the product is removed or the quantity is reduced
+
+TODO:
+- [ ] move process to service layer
+    - Add item to order
+    - Delete item from order
+    - Apply discount 
+- [ ] Add more test cases

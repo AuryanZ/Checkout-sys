@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Data.SqlClient;
+using ShopCheckOut.API.Data.Discounts;
 using ShopCheckOut.API.Data.Orders;
 using ShopCheckOut.API.Data.Products;
 using ShopCheckOut.API.Dtos.Orders;
@@ -7,7 +8,11 @@ using ShopCheckOut.API.Models;
 
 namespace ShopCheckOut.API.Data.Services.Orders
 {
-    public class OrderService(IOrderRepo orderRepo, IProductsRepo productsRepo, IMapper mapper) : IOrderService
+    public class OrderService(
+        IOrderRepo orderRepo,
+        IProductsRepo productsRepo,
+        IDiscountRepo discountRepo,
+        IMapper mapper) : IOrderService
     {
         public async Task<OrderUpdateDto> AddItemToOrder(string orderId, AddItemRequest request)
         {
@@ -26,8 +31,51 @@ namespace ShopCheckOut.API.Data.Services.Orders
             try
             {
                 var product = await productsRepo.GetProductBySKU(request.ItemSku);
-                var order = await orderRepo.AddItemToOrder(_orderId, product, _quantity);
-                return mapper.Map<OrderUpdateDto>(order);
+                //var order = await orderRepo.AddItemToOrder(_orderId, product, _quantity);
+                //return mapper.Map<OrderUpdateDto>(order);
+                var order = await orderRepo.getOrderbyId(_orderId);
+                var existingItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == product.Id);
+                if (existingItem != null)
+                {
+                    var newOrderItem = new OrderItems
+                    {
+                        OrderId = _orderId,
+                        ProductId = product.Id,
+                        Product = product,
+                        Quantity = _quantity
+                    };
+                    order = await orderRepo.AddOrderItem(newOrderItem, _orderId, true);
+                    existingItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == product.Id);
+                }
+                else // If product does not exist, add new order item
+                {
+                    var newOrderItem = new OrderItems
+                    {
+                        OrderId = _orderId,
+                        ProductId = product.Id,
+                        Product = product,
+                        Quantity = _quantity
+                    };
+
+                    order = await orderRepo.AddOrderItem(newOrderItem, _orderId, false);
+                    existingItem = newOrderItem;
+                }
+                try
+                {
+                    var priceAfterDisc = await GetDiscountedPrice(existingItem);
+                    existingItem.Saved = priceAfterDisc.ItemSaved;
+                    existingItem.DiscountName = priceAfterDisc.DiscoutName;
+
+                    order.TotalAmount += priceAfterDisc.Price;
+                    order.TotalSaved += priceAfterDisc.ItemSaved;
+                    var result = mapper.Map<OrderUpdateDto>(order);
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+
             }
             catch (KeyNotFoundException ex)
             {
@@ -146,6 +194,15 @@ namespace ShopCheckOut.API.Data.Services.Orders
                 throw new Exception("An unexpected error occurred.", ex);
             }
         }
+
+        private async Task<PriceAfterDiscountReturn> GetDiscountedPrice(OrderItems order)
+        {
+            ProductsModel productsModel = order.Product;
+            int quantity = order.Quantity;
+            var productAfterDiscout = await discountRepo.PriceAfterDiscount(productsModel, quantity);
+            return productAfterDiscout;
+        }
+
     }
 
 }
